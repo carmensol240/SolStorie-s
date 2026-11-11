@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
+import { translateTopic } from "@/lib/topic-translations";
 import { TheaterFrame } from "@/components/story/theater-frame";
 import castWavingFarewell from "@/assets/cast-waving-farewell.png";
 import solSuperheroWelcome from "@/assets/sol-superhero-welcome.jpg";
@@ -26,6 +27,8 @@ interface PublicStory {
   language: string;
   cover_url: string | null;
   child_gender: string | null;
+  is_purchased?: boolean;
+  total_pages?: number;
   pages: PublicPage[];
 }
 
@@ -113,7 +116,9 @@ const PublicStoryViewer = () => {
   const isToddler = story?.age_range === '0-2';
   // Free taste for public/guest viewers — same limit as unpaid logged-in users
   const DEMO_VIRTUAL_PAGE_LIMIT = isToddler ? 5 : 4;
-  const isLockedVirtualPage = (index: number) => index >= DEMO_VIRTUAL_PAGE_LIMIT;
+  // Purchased stories are fully readable by anyone with the link; the server only sends preview pages otherwise.
+  const isPurchased = !!story?.is_purchased;
+  const isLockedVirtualPage = (index: number) => !isPurchased && index >= DEMO_VIRTUAL_PAGE_LIMIT;
 
   // Build virtual pages — age-based layout
   const virtualPages = useMemo<VirtualPage[]>(() => {
@@ -161,7 +166,7 @@ const PublicStoryViewer = () => {
       return;
     }
     setCurrentPage(p => Math.max(p - 1, -1));
-  }, [story, virtualPages.length, DEMO_VIRTUAL_PAGE_LIMIT]);
+  }, [story, virtualPages.length, DEMO_VIRTUAL_PAGE_LIMIT, isPurchased]);
 
   // Scroll to top on every page change — fires before paint
   useLayoutEffect(() => {
@@ -213,8 +218,11 @@ const PublicStoryViewer = () => {
   const currentVirtual = (!isCoverPage && !isEndPage && currentPage >= 0 && !isCurrentLocked) ? virtualPages[currentPage] : null;
   const illustrationSrc = currentVirtual?.illustrationUrl ? getPublicIllustrationUrl(currentVirtual.illustrationUrl) : null;
   const displayText = currentVirtual?.text || '';
-  const dbPageCount = story?.pages?.length || 0;
-  const visiblePagesCount = Math.min(virtualPages.length, DEMO_VIRTUAL_PAGE_LIMIT);
+  const dbPageCount = story?.total_pages || story?.pages?.length || 0;
+  const visiblePagesCount = isPurchased ? virtualPages.length : Math.min(virtualPages.length, DEMO_VIRTUAL_PAGE_LIMIT);
+  // Locked rule 2: no stock image instead of the child — fall back to the story's first illustration.
+  const firstIllustration = story.pages.find((p) => p.illustration_url)?.illustration_url || null;
+  const coverSrc = story.cover_url || (firstIllustration ? getPublicIllustrationUrl(firstIllustration) : null) || solSuperheroWelcome;
   const signupUrl = `/auth?returnTo=${encodeURIComponent(`/s/${storySlug}`)}`;
 
   return (
@@ -222,7 +230,7 @@ const PublicStoryViewer = () => {
       {/* Compact header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-4 py-2 flex items-center justify-between shrink-0">
         <h1 className="text-sm font-bold text-purple-800 truncate flex-1 text-center">
-          ✨ {story.topic} ✨
+          ✨ {translateTopic(story.topic, story.language)} ✨
         </h1>
       </header>
 
@@ -234,7 +242,7 @@ const PublicStoryViewer = () => {
             {/* Cover Page */}
             {isCoverPage && (
               <div className="h-full w-full relative overflow-hidden">
-                <img src={story.cover_url || solSuperheroWelcome} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
+                <img src={coverSrc} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
                 {/* Content — dedication + button */}
@@ -246,7 +254,7 @@ const PublicStoryViewer = () => {
                   <p className="text-2xl md:text-4xl font-black bg-gradient-to-r from-purple-300 via-pink-300 to-orange-300 bg-clip-text text-transparent drop-shadow-lg mt-1">
                     {story.child_name} ❤️
                   </p>
-                  <p className="text-sm text-white/70 mt-2 drop-shadow-md">{story.topic}</p>
+                  <p className="text-sm text-white/70 mt-2 drop-shadow-md">{translateTopic(story.topic, story.language)}</p>
                 </div>
 
                 {/* Bottom — open button */}
@@ -290,9 +298,17 @@ const PublicStoryViewer = () => {
                   <p className="text-4xl">📚✨</p>
                   <h2 className="text-2xl font-bold text-[#8B4513]">תודה שקראתם!</h2>
                   <p className="text-[#6B4423]">נוצר באהבה ב-SolStorie's™</p>
-                  <Button onClick={() => navigate("/create")} className="mt-4 min-h-[52px] text-lg font-bold px-6">
-                    ✨ ליצור סיפור חדש
-                  </Button>
+                  <div className="mt-4 rounded-2xl bg-white/70 px-5 py-4 max-w-sm mx-auto">
+                    <p className="text-lg font-bold text-[#5B3E96]">רוצים סיפור כזה לילד שלכם?</p>
+                    <div className="mt-3 flex flex-col sm:flex-row gap-2 justify-center">
+                      <Button onClick={() => navigate("/create?from=share")} className="min-h-[48px] font-bold px-5">
+                        ✨ ליצירת סיפור
+                      </Button>
+                      <Button variant="outline" onClick={() => navigate("/")} className="min-h-[48px] px-5">
+                        לדף הבית
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 <button onClick={() => handlePageNav('prev')} aria-label="עמוד קודם"
                   className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center bg-purple-100/60 hover:bg-purple-200 text-purple-500 transition-all">

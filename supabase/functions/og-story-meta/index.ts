@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { translateTopic } from "../_shared/topic-hebrew.ts";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,52 +29,50 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const storyIdParam = url.searchParams.get("storyId");
-
-    if (!storyIdParam) {
-      return new Response("Missing storyId", { status: 400 });
-    }
+    const storyIdParam = (url.searchParams.get("s") || url.searchParams.get("storyId") || "").trim();
 
     const siteOrigin = "https://soulstory.co.il";
     const defaultOgImage = "https://qvdwmkxviaqcgmjotsxe.supabase.co/storage/v1/object/public/topic-images/sol-superhero-book-og.png";
+
+    // Slug only (short share code); no lookup by other fields, no listing.
+    if (!/^[A-Za-z0-9_-]{3,64}$/.test(storyIdParam) || UUID_RE.test(storyIdParam)) {
+      return Response.redirect(siteOrigin, 302);
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Try to find story by UUID first, then by slug
-    let story: any = null;
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-    if (uuidRegex.test(storyIdParam)) {
-      const { data } = await supabase
-        .from("stories")
-        .select("id, slug, topic, child_name, cover_url, language")
-        .eq("id", storyIdParam)
-        .maybeSingle();
-      story = data;
-    }
-
-    if (!story) {
-      const { data } = await supabase
-        .from("stories")
-        .select("id, slug, topic, child_name, cover_url, language")
-        .eq("slug", storyIdParam)
-        .maybeSingle();
-      story = data;
-    }
+    const { data: story } = await supabase
+      .from("stories")
+      .select("id, slug, topic, child_name, cover_url, language")
+      .eq("slug", storyIdParam)
+      .maybeSingle();
 
     if (!story) {
       return Response.redirect(siteOrigin, 302);
     }
 
-    const slug = story.slug || story.id;
-    const title = `✨ הסיפור של ${story.child_name} – ${story.topic} | SolStorie's™`;
-    const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name}. לחצו לקריאת הסיפור המלא 📚`;
-    const rawCoverUrl = story.cover_url;
+    let rawCoverUrl: string | null = story.cover_url;
+    if (!rawCoverUrl) {
+      // Locked rule 2: first illustration of this story, never a stock image when one exists.
+      const { data: firstPage } = await supabase
+        .from("story_pages")
+        .select("illustration_url")
+        .eq("story_id", story.id)
+        .not("illustration_url", "is", null)
+        .order("page_number", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      rawCoverUrl = firstPage?.illustration_url ?? null;
+    }
+
+    const topicLabel = translateTopic(story.topic || "", story.language);
+    const title = `✨ הסיפור של ${story.child_name} – ${topicLabel} | SolStories`;
+    const description = `סיפור קסום שנוצר במיוחד עבור ${story.child_name}. לחצו לקריאת הסיפור 📚`;
     const imageUrl = resolveImageUrl(rawCoverUrl, defaultOgImage, supabaseUrl);
-    const shareUrl = `${siteOrigin}/s/${slug}`;
-    const viewUrl = `${siteOrigin}/story/${slug}`;
+    const shareUrl = `${siteOrigin}/s/${story.slug}`;
+    const viewUrl = shareUrl;
 
     const userAgent = req.headers.get("user-agent") || "";
     const isBot = isCrawler(userAgent);

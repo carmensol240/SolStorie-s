@@ -1316,7 +1316,8 @@ const [currentPage, setCurrentPage] = useState(0);
     if (!story) return;
 
     const slug = story.slug || story.id;
-    const link = `https://soulstory.co.il/s/${slug}`;
+    // Share-preview service: bots get the child's cover + Hebrew title, people are sent on to /s/<slug>.
+    const link = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/og-story-meta?s=${encodeURIComponent(slug)}`;
     const text = `${story.child_name} קיבל/ה סיפור מותאם אישית ב-SolStories 🌟 הכנסו לראות את הקסם 🎉 ${link}`;
 
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
