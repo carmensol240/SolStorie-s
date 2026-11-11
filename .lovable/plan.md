@@ -19,11 +19,13 @@ Nothing changes in existing stories. All locked rules stay (Pixar 3D only, cover
    - These words are saved on the story (new fields) and copied word for word into every page, every redraw and the coloring pages.
    - Order of priority: avatar picture > avatar analysis > hair color from the form > story text. The instruction says outright: "if the text disagrees, follow the avatar picture".
    - Clothes keep their current priority (form wins).
+   - If the child's profile has no hair color, the shade found in the avatar is saved there, so the next story of the same child gets the same shade. A hair color already in the profile is never overwritten.
 
 3. **Every page also checked against the avatar**
    - The existing check (with page 1) stays. A second check is added on the same call, with the avatar as a third picture: same face, same apparent age (about 4), same hair shade.
    - A mismatch goes through the same flow as today: one redraw with the reason, then keep the closest picture, mark "needs attention" and alert you.
    - Page 1 keeps its locked rule: checked only against the avatar and never left empty.
+   - No page is ever left empty because of the avatar check. If a page still fails after the redraw, the closest picture is saved, the story is marked "needs attention" and you get an alert. An explicit test covers this.
 
 ## Files
 - supabase/functions/_shared/appearance.ts — age taken from the profile; fixed hair-shade list.
@@ -32,7 +34,8 @@ Nothing changes in existing stories. All locked rules stay (Pixar 3D only, cover
 - supabase/functions/generate-story/index.ts — sends children.age, saves the traits on the story.
 - supabase/functions/generate-illustrations/index.ts and retry-illustration/index.ts — use the saved traits and the real age, send the avatar to the check.
 - Database: 3 new optional story fields (hero_hair_shade, hero_eye_color, hero_skin_tone). Old stories keep them empty and work as they do now.
-- Tests: real age instead of range; avatar hair beats the text; existing tests (cover-check, camera-framing, look-check) stay unchanged and passing.
+- Database: children.hair_color filled only when empty.
+- Tests: a page failing the avatar check is saved with the closest picture, never empty; real age instead of range; avatar hair beats the text; existing tests (cover-check, camera-framing, look-check) stay unchanged and passing.
 
 ## Estimated cost (per new full story, ~6 drawn pages)
 - Extra avatar analysis: about 0.3 cents per story.
@@ -41,4 +44,5 @@ Nothing changes in existing stories. All locked rules stay (Pixar 3D only, cover
 - Total: about 1-11 cents more per story, about 0.1-0.5 credits. No cost for existing stories.
 
 ## Verification after approval
-- One test taste through the admin test route only if you approve (about 1.5-2 credits), with a report per page: age, hair shade, check result.
+- Run all tests and report their status, what changed and in which files.
+- No test taste without your separate approval.
