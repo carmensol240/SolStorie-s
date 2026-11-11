@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { containFit, isAvatarCoverUrl } from '@/lib/avatar-cover';
 import QRCode from 'qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { useSignedUrls } from '@/hooks/use-signed-urls';
@@ -295,6 +296,58 @@ export const usePdfExport = () => {
         freeCanvas(overlay);
         band.container.innerHTML = '';
       }
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, PAGE_MM, PAGE_MM);
+      freeCanvas(canvas);
+    } finally {
+      revoke();
+    }
+  };
+
+  // ─── Avatar cover (new stories): the avatar whole and untouched, blurred copy of it on the sides,
+  // title + child's name in the bottom band below the picture (never on it) ──
+  const addAvatarCoverPage = async (pdf: jsPDF, container: HTMLDivElement, url: string, childName: string, title: string, lang: PrintLang) => {
+    const { img, revoke } = await loadImage(url);
+    try {
+      const S = PAGE_PX;
+      const canvas = document.createElement('canvas');
+      canvas.width = S; canvas.height = S;
+      const ctx = canvas.getContext('2d')!;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      // Soft blurred fill: the same avatar, cover-scaled into a tiny canvas then enlarged.
+      const tiny = document.createElement('canvas');
+      tiny.width = 28; tiny.height = 28;
+      const tctx = tiny.getContext('2d')!;
+      const kc = Math.max(28 / img.naturalWidth, 28 / img.naturalHeight);
+      tctx.drawImage(img, (28 - img.naturalWidth * kc) / 2, (28 - img.naturalHeight * kc) / 2, img.naturalWidth * kc, img.naturalHeight * kc);
+      ctx.drawImage(tiny, 0, 0, S, S);
+      freeCanvas(tiny);
+      ctx.fillStyle = 'rgba(255,252,243,0.18)';
+      ctx.fillRect(0, 0, S, S);
+      // The avatar: whole (contain), never cropped or stretched, above the name band.
+      const bandTop = Math.round(S * 0.8);
+      const top = Math.round((SAFE_MM / PAGE_MM) * S * 0.6);
+      const fit = containFit(img.naturalWidth, img.naturalHeight, S, bandTop - top);
+      ctx.drawImage(img, (S - fit.w) / 2, top, fit.w, fit.h);
+      // Band below the picture: soft dark wash so the white title reads on any colours.
+      const g = ctx.createLinearGradient(0, top + fit.h, 0, S);
+      g.addColorStop(0, 'rgba(0,0,0,0.25)');
+      g.addColorStop(1, 'rgba(0,0,0,0.6)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, top + fit.h, S, S - top - fit.h);
+      const T = PRINT_TEXTS[lang];
+      const el = document.createElement('div');
+      el.style.cssText = pageBase(T.dir) + 'background:transparent;';
+      const bandPx = Math.round(DESIGN * (1 - (top + fit.h) / S));
+      el.innerHTML = `
+        <div style="position:absolute;left:0;right:0;bottom:0;height:${bandPx}px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 ${SAFE_PX + 20}px ${Math.round(SAFE_PX * 0.6)}px;box-sizing:border-box;">
+          <h1 style="color:#ffffff;font-size:58px;font-weight:900;margin:0 0 8px 0;line-height:1.1;text-shadow:0 2px 8px rgba(0,0,0,0.6);">${escapeHtml(title)}</h1>
+          <p style="color:#FFD66B;font-size:36px;font-weight:700;margin:0;text-shadow:0 2px 6px rgba(0,0,0,0.6);">${heartSvg(30)} ${escapeHtml(T.storyOf(childName))}</p>
+        </div>`;
+      const overlay = await captureCanvas(container, el, true);
+      ctx.drawImage(overlay, 0, 0, S, S);
+      freeCanvas(overlay);
+      container.innerHTML = '';
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, PAGE_MM, PAGE_MM);
       freeCanvas(canvas);
     } finally {
@@ -655,6 +708,14 @@ export const usePdfExport = () => {
         if (i > 0) pdf.addPage([PAGE_MM, PAGE_MM], 'portrait');
         switch (slot.kind) {
           case 'cover': {
+            if (isAvatarCoverUrl(story.cover_url)) {
+              const title = translateTopic(story.topic, story.language);
+              try { await addAvatarCoverPage(pdf, container, picUrl(story.cover_url!), story.child_name, title, lang); break; }
+              catch {
+                // print copy failed → the original avatar; if that fails too, the old page-1 cover below
+                try { await addAvatarCoverPage(pdf, container, signedUrlMap[story.cover_url!] || story.cover_url!, story.child_name, title, lang); break; } catch { /* fall through */ }
+              }
+            }
             const p1 = story.pages.find(p => p.page_number === 1)?.illustration_url || story.pages[0]?.illustration_url;
             const src = p1 ? picUrl(p1) : story.cover_url ? picUrl(story.cover_url) : solMagicBookCover;
             let loaded: { img: HTMLImageElement; revoke: () => void } | null = null;

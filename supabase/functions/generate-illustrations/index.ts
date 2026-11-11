@@ -1,3 +1,4 @@
+import { isAvatarCoverUrl } from "../_shared/avatar-cover.ts";
 import { pickFramingAngle, framingComposition, usesConsistentFraming } from "../_shared/camera-framing.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { buildMilitaryLock, militaryRoleForStory } from "../_shared/military-family.ts";
@@ -2400,7 +2401,9 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           firstIllustrationUrl = illustrationUrl;
           // Page 1 IS the book cover — no separate cover image is generated anymore.
           const coverPublic = buildPublicIllustrationUrl(illustrationUrl);
-          if (coverPublic) {
+          // New stories: the cover is the child's avatar copy — page 1 never overwrites it.
+          const { data: coverRow } = await supabase.from("stories").select("cover_url").eq("id", storyId).maybeSingle();
+          if (coverPublic && !isAvatarCoverUrl((coverRow as any)?.cover_url)) {
             await supabase
               .from("stories")
               .update({ cover_url: `${coverPublic.split("?")[0]}?v=${Date.now()}` })

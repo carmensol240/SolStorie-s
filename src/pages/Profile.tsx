@@ -1,3 +1,4 @@
+import { coverFitClass } from '@/lib/avatar-cover';
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, Heart, Save, Notebook, Crown, Sparkles, Lock, ArrowRight } from "lucide-react";
@@ -444,7 +445,7 @@ const Profile = () => {
                       <SignedImage
                         src={story.cover_url}
                         alt={story.topic}
-                        className="w-full h-40 object-cover"
+                        className={`w-full h-40 ${coverFitClass(story.cover_url)}`}
                       />
                     ) : (
                       <div className="w-full h-40 bg-gradient-to-br from-purple-300 to-pink-300 flex items-center justify-center p-2">

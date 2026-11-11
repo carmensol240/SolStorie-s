@@ -1,3 +1,4 @@
+import { coverFitClass } from '@/lib/avatar-cover';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Book, Headphones, Sparkles, Moon, GraduationCap, Heart, TreePine, Crown, Pencil, Trash2 } from 'lucide-react';
@@ -117,7 +118,7 @@ const StoryCard = ({
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
               className={cn(
-                'w-full h-full object-cover transition-opacity duration-300',
+                'w-full h-full transition-opacity duration-300', coverFitClass(coverUrl),
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               )}
             />

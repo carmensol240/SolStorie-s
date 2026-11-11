@@ -1,3 +1,4 @@
+import { isAvatarCoverUrl } from '@/lib/avatar-cover';
 import { useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BookOpen, Loader2, ChevronLeft, ChevronRight, Home, Save, Lock } from "lucide-react";
@@ -240,7 +241,24 @@ const PublicStoryViewer = () => {
           <TheaterFrame>
 
             {/* Cover Page */}
-            {isCoverPage && (
+            {/* New stories: avatar cover, whole and untouched; name and button below it, never on it */}
+            {isCoverPage && isAvatarCoverUrl(story.cover_url) && (
+              <div className="h-full w-full flex flex-col bg-paper text-paper-foreground" data-testid="public-avatar-cover">
+                <div className="flex-1 min-h-0 p-3 flex items-center justify-center">
+                  <img src={story.cover_url!} alt="כריכה" className="w-full h-full object-contain" />
+                </div>
+                <div className="shrink-0 flex flex-col items-center text-center gap-1 px-6 pb-4">
+                  <p className="text-base font-medium" dir="rtl">הספר הזה נוצר במיוחד עבורך,</p>
+                  <p className="text-2xl md:text-3xl font-black">{story.child_name} ❤️</p>
+                  <p className="text-sm text-paper-foreground/70">{translateTopic(story.topic, story.language)}</p>
+                  <button type="button" onClick={() => handlePageNav('next')} aria-label="התחל לקרוא"
+                    className="mt-2 bg-primary text-primary-foreground font-bold px-6 py-3 rounded-full shadow-xl text-sm">
+                    📖 פִּתְחוּ אֶת הַסֵּפֶר
+                  </button>
+                </div>
+              </div>
+            )}
+            {isCoverPage && !isAvatarCoverUrl(story.cover_url) && (
               <div className="h-full w-full relative overflow-hidden">
                 <img src={coverSrc} alt="כריכה" className="absolute inset-0 w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />

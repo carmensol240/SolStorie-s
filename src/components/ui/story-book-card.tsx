@@ -1,3 +1,4 @@
+import { coverFitClass } from '@/lib/avatar-cover';
 import { useState } from 'react';
 import { Book, Trash2, MoreVertical, Pencil, Download, Check, Loader2, HardDriveDownload, Trash } from 'lucide-react';
 import { Button } from './button';
@@ -36,7 +37,7 @@ const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
       alt={alt}
       loading="lazy"
       onError={() => setHasError(true)}
-      className="w-full h-full object-cover"
+      className={`w-full h-full ${coverFitClass(src)}`}
       style={{ imageOrientation: 'none' }}
     />
   );

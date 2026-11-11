@@ -1,3 +1,5 @@
+import { isAvatarCoverUrl } from '@/lib/avatar-cover';
+import { AvatarCoverPage } from '@/components/story/book-frame/AvatarCoverPage';
 import GlobalFooter from "@/components/shared/GlobalFooter";
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from "react";
 import { isLegacyOpenStory } from "../../supabase/functions/_shared/legacy-access";
@@ -1729,7 +1731,7 @@ const [currentPage, setCurrentPage] = useState(0);
           result.push({
             type: 'combined',
             dbPage: page,
-            illustrationUrl: page.illustration_url,
+            illustrationUrl: isAvatarCoverUrl(story.cover_url) ? story.cover_url! : page.illustration_url,
             illustrationPrompt: page.illustration_prompt || null,
             text: '',
             isCover: true,
@@ -2265,7 +2267,16 @@ const [currentPage, setCurrentPage] = useState(0);
             ) : currentVirtual ? (
               /* Story Content Pages */
               <div className={cn("w-full relative animate-fade-in", fitPhoneCard ? "h-auto" : "h-full")}>
-                {currentVirtual.type === 'combined' && !isWideReader && currentVirtual.illustrationUrl ? (
+                {currentVirtual.isCover && story && isAvatarCoverUrl(currentVirtual.illustrationUrl) ? (
+                  /* New stories: the cover is the child's avatar, whole and untouched; title beside/below it */
+                  <AvatarCoverPage
+                    src={getPublicIllustrationUrl(currentVirtual.illustrationUrl!) || currentVirtual.illustrationUrl!}
+                    title={translateTopic(story.topic, story.language)}
+                    childName={story.child_name}
+                    wide={isWideReader}
+                    className={fitPhoneCard ? "min-h-[70dvh]" : undefined}
+                  />
+                ) : currentVirtual.type === 'combined' && !isWideReader && currentVirtual.illustrationUrl ? (
                   /* Ages 0–4, portrait phone: picture fills the card with the text on it,
                      or picture on top + text below when the text is long. */
                   (() => {

@@ -1,3 +1,4 @@
+import { saveAvatarCover } from "../_shared/avatar-cover.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { mergeAppearance, kippahForRequest, kippahColor, type Appearance } from "../_shared/appearance.ts";
 import { readSwitch, decideFormat } from "../_shared/illustration-format.ts";
@@ -2612,6 +2613,17 @@ ${fullStoryText}`;
     if (pagesError) {
       console.error("Error creating pages:", pagesError);
       throw pagesError;
+    }
+
+    // New stories: the cover is a frozen public copy of the child's drawn avatar (never the real photo).
+    // Any failure keeps the old behaviour (page 1 becomes the cover) and alerts the admin.
+    if (userId) {
+      await saveAvatarCover(supabase, {
+        id: story.id, user_id: userId,
+        child_id: (story as any).child_id ?? verifiedChildId ?? null,
+        child_name: (story as any).child_name ?? childName,
+        created_at: (story as any).created_at,
+      });
     }
 
     // === DEFERRED CREDIT DEDUCTION ===

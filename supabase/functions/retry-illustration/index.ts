@@ -1,3 +1,4 @@
+import { isAvatarCoverUrl } from "../_shared/avatar-cover.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
@@ -100,7 +101,7 @@ serve(async (req) => {
     // Verify story ownership (or admin)
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, cover_url")
       .eq("id", storyId)
       .maybeSingle();
 
@@ -173,9 +174,11 @@ serve(async (req) => {
         }
         // Page 1 IS the cover — keep both pointers identical.
         await supabase.from("story_pages").update({ illustration_url: `${finalPage1Path}?v=${Date.now()}`, print_illustration_url: null, print_illustration_width: null }).eq("id", pageId);
-        await supabase.from("stories")
-          .update({ cover_url: `${publicUrl(finalPage1Path)}?v=${Date.now()}` })
-          .eq("id", storyId);
+        if (!isAvatarCoverUrl((story as any).cover_url)) {
+          await supabase.from("stories")
+            .update({ cover_url: `${publicUrl(finalPage1Path)}?v=${Date.now()}` })
+            .eq("id", storyId);
+        }
       }
       await supabase.storage.from("story-illustrations").remove([candidatePath]).catch(() => {});
       return new Response(
@@ -662,7 +665,7 @@ NEGATIVE: ${NEGATIVE_PROMPT}${formatRule((story as any).illustration_format)}`;
         .update({ illustration_url: `${filePath.split("?")[0]}?v=${v}`, print_illustration_url: null, print_illustration_width: null })
         .eq("id", pageId);
       // Page 1 IS the cover (library card + share page) — keep both pointers identical.
-      if (page.page_number === 1) {
+      if (page.page_number === 1 && !isAvatarCoverUrl((story as any).cover_url)) {
         await supabase.from("stories").update({ cover_url: `${publicUrl(filePath)}?v=${v}` }).eq("id", storyId);
       }
     }

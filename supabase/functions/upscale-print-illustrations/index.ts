@@ -3,6 +3,7 @@
 // Only for the story owner who is entitled to the print file (same rule as the browser).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { hasPdfEntitlement } from "../_shared/pdf-entitlement.ts";
+import { isAvatarCoverUrl } from "../_shared/avatar-cover.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,7 +56,7 @@ Deno.serve(async (req) => {
     const { data: { user } } = await admin.auth.getUser(token);
     if (!user) return json({ error: "Unauthorized" }, 401);
 
-    const { data: story } = await admin.from("stories").select("user_id").eq("id", storyId).maybeSingle();
+    const { data: story } = await admin.from("stories").select("user_id, cover_url").eq("id", storyId).maybeSingle();
     if (!story) return json({ error: "Not found" }, 404);
     const { data: isAdmin } = await admin.rpc("is_effective_admin", { _user_id: user.id });
     if (story.user_id !== user.id && !isAdmin) return json({ error: "Forbidden" }, 403);
@@ -117,7 +118,41 @@ Deno.serve(async (req) => {
         }
       }
     };
-    await Promise.all([work(), work(), work()]);
+    // Avatar cover (new stories): one print-only upscaled copy; the cover itself is never changed.
+    const coverWork = async () => {
+      const cover = (story as any).cover_url as string | null;
+      if (!isAvatarCoverUrl(cover)) return;
+      try {
+        const base = cover!.split("?")[0];
+        const path = `${storyId}/print/cover-avatar.jpg`;
+        const printUrl = admin.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+        const head = await fetch(printUrl, { method: "HEAD" }).catch(() => null);
+        if (head?.ok) { result[cover!] = { url: printUrl, width: null, upscaled: true }; return; }
+        const orig = new Uint8Array(await (await fetch(base, { signal: AbortSignal.timeout(20_000) })).arrayBuffer());
+        const size = imageSize(orig);
+        const long = size ? Math.max(size.w, size.h) : 1024;
+        if (long >= TARGET) return; // already print size → the original is used
+        if (!FAL_KEY) throw new Error("FAL_KEY missing");
+        const scale = Math.min(4, Math.max(2, Math.ceil((TARGET / long) * 10) / 10));
+        const r = await fetch("https://fal.run/fal-ai/esrgan", {
+          method: "POST",
+          signal: AbortSignal.timeout(60_000),
+          headers: { Authorization: `Key ${FAL_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ image_url: base, scale, model: "RealESRGAN_x4plus", output_format: "jpeg" }),
+        });
+        if (!r.ok) throw new Error(`esrgan ${r.status} ${(await r.text()).slice(0, 200)}`);
+        const d = await r.json();
+        const img = await fetch(d.image.url);
+        const bytes = new Uint8Array(await img.arrayBuffer());
+        const up = await admin.storage.from(BUCKET).upload(path, bytes, { contentType: "image/jpeg", upsert: true });
+        if (up.error) throw up.error;
+        result[cover!] = { url: printUrl, width: d.image.width ?? null, upscaled: true };
+        console.log(`print avatar cover: ${long}px -> ${d.image.width ?? "?"}px`);
+      } catch (e) {
+        console.error("avatar cover upscale failed (original is used):", e);
+      }
+    };
+    await Promise.all([work(), work(), work(), coverWork()]);
     return json({ images: result });
   } catch (e) {
     console.error("upscale-print-illustrations error", e);

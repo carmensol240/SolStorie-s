@@ -1,3 +1,4 @@
+import { coverFitClass } from '@/lib/avatar-cover';
 import { useState } from 'react';
 import { Book, Trash2, MoreVertical, RefreshCw, Pencil, ImagePlus, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -37,7 +38,7 @@ const CoverImage = ({ src, alt }: { src: string; alt: string }) => {
       alt={alt}
       loading="lazy"
       onError={() => setHasError(true)}
-      className="w-full h-full object-cover"
+      className={`w-full h-full ${coverFitClass(src)}`}
     />
   );
 };

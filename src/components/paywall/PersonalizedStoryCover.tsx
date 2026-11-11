@@ -1,3 +1,4 @@
+import { isAvatarCoverUrl } from '@/lib/avatar-cover';
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicIllustrationUrl } from "@/lib/illustration-url";
@@ -64,9 +65,11 @@ const PersonalizedStoryCover = ({ storyId }: PersonalizedStoryCoverProps) => {
   if (!cover?.url) {
     return null;
   }
+  // Avatar cover: whole picture with nothing on it; the name goes below the book.
+  const avatar = isAvatarCoverUrl(cover.url);
 
   return (
-    <div className="flex justify-center my-1">
+    <div className="flex flex-col items-center my-1">
       <div className="fba-scene">
         <div className="fba-spine">
           <span className="fba-spine-text">
@@ -77,11 +80,12 @@ const PersonalizedStoryCover = ({ storyId }: PersonalizedStoryCoverProps) => {
           <img
             src={cover.url}
             alt={cover.name ? `הספר של ${cover.name}` : "ספר הסיפור שלך"}
-            className="fba-cover-img"
+            className={avatar ? "fba-cover-img bg-paper" : "fba-cover-img"}
+            style={avatar ? { objectFit: "contain", objectPosition: "center" } : undefined}
             loading="eager"
           />
-          <div className="fba-badge">✨ SolStorie&apos;s™</div>
-          {cover.name && (
+          {!avatar && <div className="fba-badge">✨ SolStorie&apos;s™</div>}
+          {cover.name && !avatar && (
             <div className="fba-overlay">
               <div
                 className="font-bold text-center"
@@ -97,6 +101,9 @@ const PersonalizedStoryCover = ({ storyId }: PersonalizedStoryCoverProps) => {
           )}
         </div>
       </div>
+      {avatar && cover.name && (
+        <div className="font-bold text-center text-amber-400 mt-1">{cover.name}</div>
+      )}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { coverFitClass } from '@/lib/avatar-cover';
 import { useNavigate } from "react-router-dom";
 import { Play, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ const ContinueReading = ({ story }: ContinueReadingProps) => {
             <img
               src={story.cover_url}
               alt={`שער הסיפור של ${story.child_name}`}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className={`w-full h-full ${coverFitClass(story.cover_url)} group-hover:scale-105 transition-transform duration-300`}
               style={{ imageOrientation: 'none' }}
             />
           ) : (

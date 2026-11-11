@@ -1,3 +1,4 @@
+import { isAvatarCoverUrl } from '@/lib/avatar-cover';
 import { useEffect, useState } from "react";
 import { PRINT_NOTE, printLang } from "@/lib/print-layout";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -63,6 +64,8 @@ export const PrintBookPreviewModal = ({
 
   const current = slides[idx];
   const isCover = current?.type === "cover";
+  // Avatar cover: whole picture, nothing on it; title and name go below the book.
+  const avatarCover = isCover && isAvatarCoverUrl(current?.src);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,7 +108,7 @@ export const PrintBookPreviewModal = ({
                 ) : (
                   <img
                     key={idx}
-                    className="fba-cover-img"
+                    className={avatarCover ? "fba-cover-img bg-paper" : "fba-cover-img"}
                     src={current?.src}
                     alt={current?.type === "cover" ? `כריכת הספר של ${childName}` : `איור מהספר של ${childName}`}
                     loading="lazy"
@@ -114,11 +117,12 @@ export const PrintBookPreviewModal = ({
                       transformOrigin: "left center",
                       transform: flipping ? "rotateY(-75deg)" : "rotateY(0)",
                       opacity: flipping ? 0.3 : 1,
+                      ...(avatarCover ? { objectFit: "contain" as const, objectPosition: "center" } : {}),
                     }}
                   />
                 )}
-                <div className="fba-badge">✨ SolStorie&apos;s™</div>
-                {isCover && (
+                {!avatarCover && <div className="fba-badge">✨ SolStorie&apos;s™</div>}
+                {isCover && !avatarCover && (
                   <div className="fba-overlay">
                     <div
                       className="text-white font-extrabold leading-tight"
@@ -136,6 +140,12 @@ export const PrintBookPreviewModal = ({
                 )}
               </div>
             </div>
+            {avatarCover && (
+              <div className="text-center mt-3">
+                <div className="text-white font-extrabold leading-tight text-lg">{storyTitle}</div>
+                <div className="font-bold mt-1 text-amber-400">{childName}</div>
+              </div>
+            )}
             <div className="flex justify-center gap-1.5 mt-3">
               {slides.map((_, i) => (
                 <span

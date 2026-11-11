@@ -1,3 +1,4 @@
+import { coverFitClass } from '@/lib/avatar-cover';
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, BookOpen } from "lucide-react";
 import { SignedImage } from "@/components/ui/signed-image";
@@ -50,7 +51,7 @@ const RecentStories = ({ stories }: RecentStoriesProps) => {
                 src={story.cover_url}
                 storyId={story.id}
                 alt={`שער הסיפור של ${story.child_name}`}
-                className="w-full h-full object-cover"
+                className={`w-full h-full ${coverFitClass(story.cover_url)}`}
                 fallback={
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
                     <BookOpen className="w-8 h-8 text-primary/40" aria-hidden="true" />

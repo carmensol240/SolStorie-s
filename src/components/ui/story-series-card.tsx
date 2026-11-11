@@ -1,3 +1,4 @@
+import { coverFitClass } from '@/lib/avatar-cover';
 import { useState } from 'react';
 import { ChevronDown, BookOpen, Book } from 'lucide-react';
 import { Badge } from './badge';
@@ -58,7 +59,7 @@ const StorySeriesCard = ({
             <img
               src={coverUrl}
               alt={`כריכה לחלק 1: ${mainStory.topic || ''}`}
-              className="w-full h-full object-cover"
+              className={`w-full h-full ${coverFitClass(coverUrl)}`}
               loading="lazy"
             />
           ) : (
@@ -124,7 +125,7 @@ const StorySeriesCard = ({
                     <img
                       src={getCoverImage(story)!}
                       alt={`כריכה לחלק ${idx + 1}: ${story.topic || ''}`}
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full ${coverFitClass(getCoverImage(story))}`}
                     />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
