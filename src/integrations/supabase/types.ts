@@ -1502,6 +1502,7 @@ export type Database = {
       }
       is_disposable_email: { Args: { p_email: string }; Returns: boolean }
       is_effective_admin: { Args: { _user_id: string }; Returns: boolean }
+      mark_stuck_stories: { Args: never; Returns: number }
       redeem_coupon_atomic: {
         Args: { p_code: string; p_user_id: string }
         Returns: Json
