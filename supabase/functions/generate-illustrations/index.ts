@@ -7,7 +7,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
-import { isLookOnly, lookFixInstruction, lookProblemsFrom, LOOK_KEPT_PREFIX, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
+import { isLookOnly, lookFixInstruction, lookProblemsFrom, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
+import { coverProblemsFrom, keptTryAfterFailedRedraws } from "../_shared/cover-check.ts";
 import { formatRule, backupSizeFor } from "../_shared/illustration-format.ts";
 import { reserveRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
 import { alignProfileGender } from "../_shared/profile-gender.ts";
@@ -185,8 +186,9 @@ async function checkIdentityMatch(
   pageOneImageUrl: string | null,
   apiKey: string,
   _strict = false,
-  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string } = {},
+  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; cover?: boolean; avatarUrl?: string | null } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
+  if (opts.cover) return await checkCoverAgainstAvatar(pageImageUrl, opts.avatarUrl ?? null, apiKey, opts);
   try {
     const hasRef = !!pageOneImageUrl;
     const img = hasRef ? "Image B" : "The image";
@@ -242,6 +244,63 @@ async function checkIdentityMatch(
     return { match: problems.length === 0, problems, differences, reason: problems.length ? `${reason}${differences ? ` [${differences}]` : ""}` : String(p.reason || "ok").slice(0, 120) };
   } catch (e) {
     console.warn("[IDENTITY-CHECK] failed:", (e as Error)?.message);
+    return null;
+  }
+}
+
+// Page 1 (cover) on a first drawing: compared only with the child's avatar — same child, hair,
+// eyes and a Pixar-like 3D render — plus the general picture checks. Clothes, emblem and
+// "no reference" never count (see _shared/cover-check.ts). Returns null when the check cannot run.
+async function checkCoverAgainstAvatar(
+  pageImageUrl: string,
+  avatarUrl: string | null,
+  apiKey: string,
+  opts: { allowText?: boolean; eyeColor?: string; hair?: string } = {},
+): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
+  try {
+    const hasAvatar = !!avatarUrl;
+    const img = hasAvatar ? "Image B" : "The image";
+    const text =
+      (hasAvatar
+        ? "Image A is the reference picture of the main child (avatar or photo). Image B is the cover of a children's book about this child. "
+        : "The image is the cover of a children's book. ") +
+      "Answer each question about " + img + ". Ignore clothes, accessories, emblems, pose and background completely.\n" +
+      (hasAvatar
+        ? "- same_child: is the main child in B the same child as in A (face, skin tone, apparent age)?\n" +
+          `- hair_tone_match: is the hair the same color/tone and length as in A${opts.hair ? ` (expected: ${opts.hair})` : ""}? false only if clearly different.\n` +
+          `- eye_color_match: are the eyes the same color as in A${opts.eyeColor ? ` (expected: ${opts.eyeColor})` : ""}? false only if clearly different (e.g. blue vs brown).\n`
+        : "") +
+      "- render_style_match: is " + img + " a polished Pixar-like 3D CGI render? false for flat 2D, painterly, watercolor or a photo.\n" +
+      "- photo_realistic: does it look like a real photograph or photorealistic image of real people?\n" +
+      "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)?\n" +
+      "- hero_twice: does the main child appear twice, or is there a near-identical twin/clone? Different-looking friends do NOT count.\n" +
+      "- has_text: are there clearly readable written letters or words drawn in the picture? Toy blocks, logos, emblems, patterns are NOT text.\n" +
+      'Answer strict JSON only: {"same_child":bool,"hair_tone_match":bool,"eye_color_match":bool,"render_style_match":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
+    const content: any[] = [{ type: "text", text }];
+    if (avatarUrl) content.push({ type: "image_url", image_url: { url: avatarUrl } });
+    content.push({ type: "image_url", image_url: { url: pageImageUrl } });
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "user", content }] }),
+    });
+    if (!res.ok) {
+      console.warn(`[COVER-CHECK] gateway returned ${res.status} — skipping check`);
+      return null;
+    }
+    const data = await res.json();
+    const raw: string = data?.choices?.[0]?.message?.content ?? "";
+    const jsonText = raw.replace(/```json|```/g, "").trim();
+    const start = jsonText.indexOf("{");
+    const end = jsonText.lastIndexOf("}");
+    if (start === -1 || end === -1) return null;
+    const p = JSON.parse(jsonText.slice(start, end + 1));
+    const problems = coverProblemsFrom(p, { hasAvatar, allowText: opts.allowText });
+    const differences = String(p.differences || "").slice(0, 160);
+    const reason = `${problems.join(", ")}${p.reason ? ` (${String(p.reason).slice(0, 80)})` : ""}`;
+    return { match: problems.length === 0, problems, differences, reason: problems.length ? `${reason}${differences ? ` [${differences}]` : ""}` : String(p.reason || "ok").slice(0, 120) };
+  } catch (e) {
+    console.warn("[COVER-CHECK] failed:", (e as Error)?.message);
     return null;
   }
 }
@@ -2101,9 +2160,12 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         if (publicPageUrl) {
           const isBackup = modelUsed === "backup_gpt_image";
           const pageRef = page.page_number !== 1 ? coverReferenceUrl : null;
+          // First drawing of page 1 (the cover): compared only with the avatar.
+          const coverCheck = page.page_number === 1 && !hadExisting;
           const verdict = await checkIdentityMatch(publicPageUrl, pageRef, LOVABLE_API_KEY, isBackup, {
             outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
             eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
+            cover: coverCheck, avatarUrl: childPhotoSignedUrl,
           });
           if (!verdict) {
             identityCheck = "unavailable";
@@ -2136,11 +2198,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             ];
             let passed = false;
             // Only eyes/hair tone/style/outfit/emblem differ from page 1: one redraw that names the differences.
-            const lookOnly = isLookOnly(verdict.problems);
+            const lookOnly = !coverCheck && isLookOnly(verdict.problems);
             const maxRedraws = lookOnly ? MAX_LOOK_REDRAWS : MAX_IDENTITY_REDRAWS;
             for (let r = 1; r <= maxRedraws && !passed; r++) {
               const prevTry = tries[tries.length - 1];
-              const redrawPrompt = isLookOnly(prevTry.problems)
+              const redrawPrompt = !coverCheck && isLookOnly(prevTry.problems)
                 ? illustrationPrompt + lookFixInstruction(prevTry.problems, prevTry.reason, characterProfile?.eyeColor)
                 : illustrationPrompt;
               const retryImage = childPhotoSignedUrl
@@ -2168,6 +2230,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               const v2 = retryPublic ? await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
                 outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
             eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
+                cover: coverCheck, avatarUrl: childPhotoSignedUrl,
               }) : null;
               if (!v2) {
                 identityCheck = `redraw ${r}: check unavailable`;
@@ -2181,19 +2244,21 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
                 console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} MISMATCH — ${v2.reason}`);
               }
             }
-            const lookTries = tries.filter((t) => isLookOnly(t.problems));
-            if (!passed && !hadExisting && lookTries.length > 0) {
-              // Some try differs only in look (eyes/hair tone/style/outfit/emblem): keep the closest
-              // such picture so the page isn't empty, and mark the story needs_attention (log prefix + alert).
-              const best = lookTries.reduce((a, b) => (b.problems.length < a.problems.length ? b : a));
+            // Page 1 (cover) always keeps its closest try; pages 2+ keep one only when it differs
+            // from page 1 in look only. Either way the story becomes needs_attention (log prefix + alert).
+            const kept = passed ? null : keptTryAfterFailedRedraws(page.page_number, hadExisting, tries);
+            if (kept) {
+              const best = kept.best;
               if (best !== tries[tries.length - 1]) {
                 const bestUrl = await uploadImageToStorage(supabase, best.image, storyId, page.page_number);
                 if (bestUrl) { illustrationUrl = bestUrl; acceptedImage = best.image; }
               }
-              identityCheck = `${LOOK_KEPT_PREFIX}: ${best.reason}`.slice(0, 300);
+              identityCheck = kept.identityCheck;
               passed = true;
               await notifyIllustrationIssue(supabase, storyId, page.page_number,
-                `העמוד נשמר, אבל הוא שונה מעמוד 1 (${best.problems.join(", ")}) גם אחרי ציור מחדש – דורש טיפול`, true);
+                kept.cover
+                  ? `הכריכה (עמוד 1) נשמרה עם האיור הכי קרוב, אבל לא עברה את הבדיקה מול האווטאר (${best.problems.join(", ")}) – דורש טיפול`
+                  : `העמוד נשמר, אבל הוא שונה מעמוד 1 (${best.problems.join(", ")}) גם אחרי ציור מחדש – דורש טיפול`, true);
             }
             if (!passed) {
               const onlyHidden = tries.filter((t) => t.problems.length === 1 && t.problems[0] === "hero not visible");
