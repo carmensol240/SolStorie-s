@@ -1,0 +1,1 @@
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS hero_hair_shade text, ADD COLUMN IF NOT EXISTS hero_eye_color text, ADD COLUMN IF NOT EXISTS hero_skin_tone text;

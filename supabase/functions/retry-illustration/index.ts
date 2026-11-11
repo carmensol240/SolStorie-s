@@ -3,6 +3,7 @@ import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { formatRule } from "../_shared/illustration-format.ts";
 import { reserveRedraws, releaseRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
+import { avatarWinsRule, normalizeHairShade, realAgeText, usesAvatarTraits } from "../_shared/avatar-traits.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
@@ -99,7 +100,7 @@ serve(async (req) => {
     // Verify story ownership (or admin)
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone")
       .eq("id", storyId)
       .maybeSingle();
 
@@ -405,6 +406,13 @@ serve(async (req) => {
       const outfit = ((story as any).story_outfit || clothingToEnglish(ap, (story as any).child_gender) || "");
       const kp = kippahForStory(story as any);
       characterLock = buildCharacterLock({ gender: (story as any).child_gender, age: ch?.age ?? null, ageRange: (story as any).age_range, hair, outfit, kippah: kp.kippah, kippahColor: kp.color });
+      // New stories: the saved avatar traits and real age, same words as the first drawing.
+      if (usesAvatarTraits((story as any).created_at)) {
+        const sh = normalizeHairShade((story as any).hero_hair_shade);
+        const traits = sh && (story as any).hero_eye_color && (story as any).hero_skin_tone
+          ? { hair: sh, eyes: (story as any).hero_eye_color, skin: (story as any).hero_skin_tone } : null;
+        characterLock += avatarWinsRule(traits, realAgeText(ch?.age, (story as any).age_range));
+      }
       if (outfit) characterLock += `\n\n${buildOutfitLock(outfit)}`;
       characterLock += `\n\n${SINGLE_HERO_RULE}`;
       // Family member in the reserves/army: fixed IDF uniform, never weapons or gear.

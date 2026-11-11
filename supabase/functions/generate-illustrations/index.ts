@@ -8,6 +8,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { isLookOnly, lookFixInstruction, lookProblemsFrom, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
+import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, usesAvatarTraits, type AvatarTraits } from "../_shared/avatar-traits.ts";
 import { coverProblemsFrom, keptTryAfterFailedRedraws } from "../_shared/cover-check.ts";
 import { formatRule, backupSizeFor } from "../_shared/illustration-format.ts";
 import { reserveRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
@@ -186,12 +187,13 @@ async function checkIdentityMatch(
   pageOneImageUrl: string | null,
   apiKey: string,
   _strict = false,
-  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; cover?: boolean; avatarUrl?: string | null } = {},
+  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; cover?: boolean; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string } | null } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   if (opts.cover) return await checkCoverAgainstAvatar(pageImageUrl, opts.avatarUrl ?? null, apiKey, opts);
   try {
     const hasRef = !!pageOneImageUrl;
     const img = hasRef ? "Image B" : "The image";
+    const avatarOn = !!(opts.avatarCheck && opts.avatarUrl);
     const text =
       (hasRef ? "Image A is page 1 of a children's book. Image B is another page of the SAME book. " : "The image is a page of a children's book. ") +
       "Answer each question about " + img + ":\n" +
@@ -208,11 +210,16 @@ async function checkIdentityMatch(
       "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)? false only if the main child is seen only from behind or the face is hidden/not shown.\n" +
       "- hero_twice: does the main child appear twice, or is there a second child who looks almost identical to the main child (a twin/clone)? Different-looking friends do NOT count.\n" +
       "- has_text: are there clearly readable written letters or words drawn in the picture (captions, signs, labels, speech bubbles)? Toy blocks, logos, emblems, patterns and textures are NOT text. Answer false unless you can actually read letters.\n" +
+      (avatarOn ? "The LAST image is the child's face reference picture (avatar). Compare the main child in " + img + " with it (ignore clothes):\n" +
+        "- avatar_face_match: same face as the reference (face shape, nose, eyes)? false if clearly a different child.\n" +
+        `- avatar_age_match: does the child look about ${opts.avatarCheck!.age} years old, same age as the reference? false if clearly younger or older.\n` +
+        `- avatar_hair_match: is the hair the same shade as the reference${opts.avatarCheck!.hair ? ` (expected: ${opts.avatarCheck!.hair})` : ""}? false if clearly lighter or darker.\n` : "") +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
-      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
+    if (avatarOn) content.push({ type: "image_url", image_url: { url: opts.avatarUrl! } });
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
@@ -1603,6 +1610,7 @@ serve(async (req) => {
     // === AVATAR PERSISTENCE LOGIC ===
     // Check if we already have a saved character profile for this child
     let characterProfile: CharacterProfile | null = null;
+    let childProfileAge: number | null = null;
     let savedProfileFromDb = false;
 
     // Fetch parent-provided appearance fields once. These take precedence over
@@ -1628,7 +1636,7 @@ serve(async (req) => {
       console.log(`Checking for existing avatar profile (child_id=${lookupChildId ?? "-"} name=${lookupName ?? "-"})...`);
       let childQ = supabase
         .from('children')
-        .select('avatar_description, avatar_url, hair_color, hair_style, clothing_type, clothing_color')
+        .select('age, avatar_description, avatar_url, hair_color, hair_style, clothing_type, clothing_color')
         .eq('user_id', ownerId);
       childQ = lookupChildId ? childQ.eq('id', lookupChildId) : childQ.eq('name', lookupName as string);
       savedChildFilter = lookupChildId ? { col: 'id', val: lookupChildId } : { col: 'name', val: lookupName as string };
@@ -1642,6 +1650,7 @@ serve(async (req) => {
         }
       }
       parentHairColor = (existingChild?.hair_color || "").trim();
+      childProfileAge = Number.isFinite(Number((existingChild as any)?.age)) ? Number((existingChild as any).age) : null;
       parentHairStyle = (existingChild?.hair_style || "").trim();
       parentClothingType = (existingChild?.clothing_type || "").trim();
       parentClothingColor = (existingChild?.clothing_color || "").trim();
@@ -1795,12 +1804,19 @@ serve(async (req) => {
     let savedOutfit: string | null = null;
     let storyFormatRule = "";
     let consistentFraming = true;
+    let avatarTraitsOn = false;
+    let avatarTraits: AvatarTraits | null = null;
     // Kippah: the story's own saved choice only (never the child profile); girls never.
     let kippahInfo = { kippah: false, color: "" };
     if (storyId) {
-      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at").eq("id", storyId).maybeSingle();
+      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone").eq("id", storyId).maybeSingle();
       storyFormatRule = formatRule((so as any)?.illustration_format);
       consistentFraming = usesConsistentFraming((so as any)?.created_at);
+      avatarTraitsOn = usesAvatarTraits((so as any)?.created_at);
+      const sh = normalizeHairShade((so as any)?.hero_hair_shade);
+      if (sh && (so as any)?.hero_eye_color && (so as any)?.hero_skin_tone) {
+        avatarTraits = { hair: sh, eyes: (so as any).hero_eye_color, skin: (so as any).hero_skin_tone };
+      }
       // A redraw always reuses the story's saved outfit; a first drawing uses it only without parent clothes.
       if (!parentOutfitEn || isRedraw) savedOutfit = (so as any)?.story_outfit || null;
       kippahInfo = kippahForStory(so as any);
@@ -1815,7 +1831,7 @@ serve(async (req) => {
 
     // === BUILD VISUAL ANCHOR ===
     // A single-paragraph description generated ONCE and injected into EVERY illustration prompt
-    const visualAnchor = characterProfile 
+    let visualAnchor = characterProfile 
       ? buildVisualAnchor(characterProfile, storyOutfit)
       : `VISUAL ANCHOR: A child wearing ${storyOutfit}. Maintain strict visual character continuity across ALL illustrations.`;
     console.log(`🔒 Visual Anchor created for character consistency`);
@@ -1954,6 +1970,44 @@ serve(async (req) => {
       if (refErr) console.warn("Could not persist child_photo_path:", refErr.message);
     }
 
+    // New stories: real age from the profile + hair/eyes/skin read once from the avatar,
+    // saved on the story and written the same on every page. The avatar picture always wins.
+    const realAge = avatarTraitsOn ? realAgeText(childProfileAge ?? reqChildAge, ageRange) : "";
+    if (avatarTraitsOn && !avatarTraits && childPhotoSignedUrl && LOVABLE_API_KEY && storyId) {
+      try {
+        const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "user", content: [
+            { type: "text", text: AVATAR_TRAITS_QUESTION },
+            { type: "image_url", image_url: { url: childPhotoSignedUrl } },
+          ] }] }),
+        });
+        const t = r.ok ? parseAvatarTraits((await r.json())?.choices?.[0]?.message?.content ?? "") : null;
+        if (t) {
+          await supabase.from("stories").update({ hero_hair_shade: t.hair, hero_eye_color: t.eyes, hero_skin_tone: t.skin })
+            .eq("id", storyId).is("hero_hair_shade", null);
+          // Parallel page calls: everyone uses whatever was saved first.
+          const { data: saved } = await supabase.from("stories").select("hero_hair_shade, hero_eye_color, hero_skin_tone").eq("id", storyId).maybeSingle();
+          const sh = normalizeHairShade((saved as any)?.hero_hair_shade);
+          avatarTraits = sh ? { hair: sh, eyes: (saved as any).hero_eye_color || t.eyes, skin: (saved as any).hero_skin_tone || t.skin } : t;
+          // Empty profile hair color gets the avatar shade, so the next story uses it too.
+          if (ownerId && savedChildFilter && !parentHairColor) {
+            await supabase.from("children").update({ hair_color: formHairFromShade(avatarTraits.hair) })
+              .eq("user_id", ownerId).eq(savedChildFilter.col, savedChildFilter.val).is("hair_color", null);
+          }
+        } else console.warn("[AVATAR-TRAITS] analysis unavailable — using saved profile");
+      } catch (e) { console.warn("[AVATAR-TRAITS] failed:", (e as Error)?.message); }
+    }
+    if (avatarTraitsOn && characterProfile) {
+      characterProfile = applyAvatarTraits(characterProfile, avatarTraits, realAge);
+      visualAnchor = buildVisualAnchor(characterProfile, storyOutfit);
+      console.log(`🧒 Avatar lock: age=${realAge} traits=${JSON.stringify(avatarTraits)}`);
+    }
+    const avatarLock = avatarTraitsOn ? avatarWinsRule(avatarTraits, realAge) : "";
+    const avatarCheck = avatarTraitsOn && childPhotoSignedUrl
+      ? { age: realAge, hair: avatarTraits?.hair || "" } : null;
+
     const baseStoryOutfit = storyOutfit;
     const baseVisualAnchor = visualAnchor;
 
@@ -1976,9 +2030,9 @@ serve(async (req) => {
         ? baseVisualAnchor
         : (characterProfile ? buildVisualAnchor(characterProfile, storyOutfit) : `VISUAL ANCHOR: A child wearing ${storyOutfit}. Maintain strict visual character continuity across ALL illustrations.`);
       const characterLock = buildCharacterLock({
-        gender: characterProfile?.gender || childGender, age: reqChildAge, ageRange,
+        gender: characterProfile?.gender || childGender, age: avatarTraitsOn && Number(realAge) > 0 ? Number(realAge) : reqChildAge, ageRange,
         hair: heroHair(parentHairEn, characterProfile?.hairDescription || "", !!childPhotoSignedUrl), outfit: storyOutfit, glasses: !!characterProfile?.glasses, kippah: kippahInfo.kippah, kippahColor: kippahInfo.color,
-      });
+      }) + avatarLock;
 
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
       const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
@@ -2165,7 +2219,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           const verdict = await checkIdentityMatch(publicPageUrl, pageRef, LOVABLE_API_KEY, isBackup, {
             outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
             eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
-            cover: coverCheck, avatarUrl: childPhotoSignedUrl,
+            cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck,
           });
           if (!verdict) {
             identityCheck = "unavailable";
@@ -2203,7 +2257,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             for (let r = 1; r <= maxRedraws && !passed; r++) {
               const prevTry = tries[tries.length - 1];
               const redrawPrompt = !coverCheck && isLookOnly(prevTry.problems)
-                ? illustrationPrompt + lookFixInstruction(prevTry.problems, prevTry.reason, characterProfile?.eyeColor)
+                ? illustrationPrompt + lookFixInstruction(prevTry.problems, prevTry.reason, characterProfile?.eyeColor, { age: realAge, hair: avatarTraits?.hair })
                 : illustrationPrompt;
               const retryImage = childPhotoSignedUrl
                 ? await generateIllustrationWithFace(
@@ -2230,7 +2284,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               const v2 = retryPublic ? await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
                 outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
             eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
-                cover: coverCheck, avatarUrl: childPhotoSignedUrl,
+                cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck,
               }) : null;
               if (!v2) {
                 identityCheck = `redraw ${r}: check unavailable`;

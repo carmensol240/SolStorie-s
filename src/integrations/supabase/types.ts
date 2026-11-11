@@ -997,6 +997,9 @@ export type Database = {
           edit_count: number
           edit_round_closed_at: string | null
           generation_status: string | null
+          hero_eye_color: string | null
+          hero_hair_shade: string | null
+          hero_skin_tone: string | null
           id: string
           illustration_format: string
           is_daily_story: boolean | null
@@ -1037,6 +1040,9 @@ export type Database = {
           edit_count?: number
           edit_round_closed_at?: string | null
           generation_status?: string | null
+          hero_eye_color?: string | null
+          hero_hair_shade?: string | null
+          hero_skin_tone?: string | null
           id?: string
           illustration_format?: string
           is_daily_story?: boolean | null
@@ -1077,6 +1083,9 @@ export type Database = {
           edit_count?: number
           edit_round_closed_at?: string | null
           generation_status?: string | null
+          hero_eye_color?: string | null
+          hero_hair_shade?: string | null
+          hero_skin_tone?: string | null
           id?: string
           illustration_format?: string
           is_daily_story?: boolean | null

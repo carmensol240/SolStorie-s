@@ -16,6 +16,7 @@ const HAIR_COLOR_EN: Record<string, string> = {
   "בלונדיני": "blonde",
   "ג'ינג'י": "ginger red",
   "חום בהיר": "light brown",
+  "חום כהה": "dark brown",
 };
 
 const HAIR_STYLE_EN: Record<string, string> = {
