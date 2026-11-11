@@ -44,3 +44,15 @@ Deno.test("pictures are always attached face, page reference, Leo — the order 
   const c = referenceContent({ face: "data:a", canon: "https://p1", leo: "https://leo" }, "PROMPT");
   assertEquals(c.map((x: any) => x.image_url?.url ?? x.text.slice(0, 22)), ["data:a", "https://p1", "https://leo", "LEO REFERENCE (THIRD I", "PROMPT"]);
 });
+
+Deno.test("likeness: distinguishing features are inside the face paragraph", async () => {
+  const { buildIllustrationPrompt } = await import("./illustration-prompt.ts");
+  const prompt = buildIllustrationPrompt({ refs: { face: true, canon: true, leo: false }, hero: { gender: "male", ageText: "4", features: ["wide square face", "short hair brushed forward, no bangs", "slightly protruding ears"] }, scene: "SCENE: x" });
+  const face = prompt.slice(0, prompt.indexOf("\n\nPAGE REFERENCE"));
+  for (const f of ["wide square face", "no bangs", "protruding ears"]) if (!face.includes(f)) throw new Error(`missing ${f}`);
+});
+Deno.test("likeness: avatar analysis keeps 3-8 clean features", async () => {
+  const { parseAvatarTraits } = await import("./avatar-traits.ts");
+  const t = parseAvatarTraits('{"hair_shade":"near-black very dark brown","eye_color":"brown","skin_tone":"fair","distinct_features":["wide face","thick straight eyebrows","short cropped sides","small nose"]}');
+  if (t?.features?.length !== 4 || t.hair !== "near-black very dark brown") throw new Error(JSON.stringify(t));
+});

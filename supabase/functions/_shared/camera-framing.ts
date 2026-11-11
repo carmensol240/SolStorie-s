@@ -22,13 +22,25 @@ export const CONSISTENT_CAMERA_ANGLES = [
 export const CONSISTENT_SIZE_RULE =
   "HERO SIZE (SAME ON EVERY PAGE): camera at the child's eye level — never from above, never from below, no wide shot where the hero is small, no face-only close-up. The hero fills about half of the image height, framed from the waist or knees up, face fully visible and turned toward the viewer. Vary the place, action and lighting between pages — never the hero's size.";
 
+// Stories from LIKENESS_CUTOFF (_shared/avatar-traits.ts): bigger face — waist-up on 2 of every 3
+// pages, knees-up on the third; the hero fills about half to 60% of the image height.
+export const CLOSE_CAMERA_ANGLES = [
+  "medium shot at the character's eye level, framed from the waist up, face large and clearly visible facing the viewer, scene visible behind",
+  "medium shot at the character's eye level, three-quarter front view framed from the waist up, face large and clearly visible, scene visible behind",
+  "medium-full shot at the character's eye level, framed from the knees up (only because the action needs the body), face clearly visible facing the viewer, scene around",
+];
+
+export const CLOSE_SIZE_RULE =
+  "HERO SIZE (SAME ON EVERY PAGE): camera at the child's eye level — never from above, never from below, no wide shot where the hero is small, no face-only close-up. The hero fills about half to 60% of the image height, framed from the waist up on most pages (knees up only when the action needs the body), face large, fully visible and turned toward the viewer. Vary the place, action and lighting between pages — never the hero's size.";
+
 export function usesConsistentFraming(createdAt: string | null | undefined): boolean {
   if (!createdAt) return true; // a story being drawn for the first time
   const t = Date.parse(createdAt);
   return Number.isNaN(t) ? true : t >= Date.parse(CONSISTENT_FRAMING_CUTOFF);
 }
 
-export function pickFramingAngle(pageNumber: number, lastPageNumber: number | null, offset: number, consistent: boolean): string {
+export function pickFramingAngle(pageNumber: number, lastPageNumber: number | null, offset: number, consistent: boolean, close = false): string {
+  if (consistent && close) return CLOSE_CAMERA_ANGLES[(pageNumber + offset) % CLOSE_CAMERA_ANGLES.length];
   if (consistent) return CONSISTENT_CAMERA_ANGLES[(pageNumber + offset) % CONSISTENT_CAMERA_ANGLES.length];
   const angle = LEGACY_CAMERA_ANGLES[(pageNumber + offset) % LEGACY_CAMERA_ANGLES.length];
   if (lastPageNumber !== null && pageNumber === lastPageNumber && angle === LEGACY_CAMERA_ANGLES[0]) {
@@ -37,7 +49,8 @@ export function pickFramingAngle(pageNumber: number, lastPageNumber: number | nu
   return angle;
 }
 
-export function framingComposition(angle: string, consistent: boolean): string {
+export function framingComposition(angle: string, consistent: boolean, close = false): string {
+  if (consistent && close) return CLOSE_SIZE_RULE;
   if (consistent) return `${CONSISTENT_SIZE_RULE}`;
   return angle === LEGACY_CAMERA_ANGLES[0]
     ? "head and upper body clearly framed, face fully visible, not cropped"

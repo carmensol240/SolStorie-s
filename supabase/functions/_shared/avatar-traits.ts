@@ -30,7 +30,25 @@ const SHADE_TO_FORM: Record<HairShade, string> = {
   "ginger red": "ג'ינג'י",
 };
 
-export interface AvatarTraits { hair: HairShade; eyes: string; skin: string }
+/** features: precise traits that set this child apart from a generic Pixar child (LIKENESS_CUTOFF stories). */
+export interface AvatarTraits { hair: HairShade; eyes: string; skin: string; features?: string[] }
+
+// Stories created from LIKENESS_CUTOFF also save distinguishing features (stories.hero_traits),
+// written into every face paragraph and checked in the face check, and get the closer framing.
+export const LIKENESS_CUTOFF = "2026-11-11T23:00:00Z";
+export function usesLikeness(createdAt: string | null | undefined): boolean {
+  if (!createdAt) return false;
+  const t = Date.parse(createdAt);
+  return !Number.isNaN(t) && t >= Date.parse(LIKENESS_CUTOFF);
+}
+
+/** Cleans the model's feature list: 3–8 short English phrases, else []. */
+export function cleanFeatures(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out = raw.map((v) => String(v ?? "").replace(/[^a-zA-Z0-9 ,\-'/]/g, "").replace(/\s+/g, " ").trim().slice(0, 90))
+    .filter((v) => v.length >= 3).slice(0, 8);
+  return out.length >= 3 ? out : [];
+}
 
 export function usesAvatarTraits(createdAt: string | null | undefined): boolean {
   if (!createdAt) return false;
@@ -72,7 +90,8 @@ export function parseAvatarTraits(raw: string): AvatarTraits | null {
     const eyes = clean(p.eye_color);
     const skin = clean(p.skin_tone);
     if (!hair || !eyes || !skin) return null;
-    return { hair, eyes, skin };
+    const features = cleanFeatures(p.distinct_features);
+    return features.length ? { hair, eyes, skin, features } : { hair, eyes, skin };
   } catch { return null; }
 }
 
@@ -80,6 +99,22 @@ export const AVATAR_TRAITS_QUESTION =
   "Look only at the child's head in this picture. Return strict JSON only: " +
   `{"hair_shade": one of ${JSON.stringify(HAIR_SHADES)}, "eye_color": "<e.g. dark brown>", "skin_tone": "<e.g. fair with rosy cheeks>"}. ` +
   "Judge the hair in its darkest natural areas, not highlights from lighting. If the hair looks almost black, answer \"near-black very dark brown\".";
+
+/** Same analysis plus the features that make this child different from a generic Pixar child. */
+export const AVATAR_LIKENESS_QUESTION =
+  "Look only at the child's head in this picture. Return strict JSON only: " +
+  `{"hair_shade": one of ${JSON.stringify(HAIR_SHADES)}, "eye_color": "<e.g. dark brown>", "skin_tone": "<e.g. fair with rosy cheeks>", ` +
+  `"distinct_features": ["5 to 8 short precise English phrases"]}. ` +
+  "Judge the hair in its darkest natural areas, not highlights from lighting. If the hair looks almost black, answer \"near-black very dark brown\". " +
+  "distinct_features: what makes THIS child look different from a generic cute Pixar child, each phrase concrete and visual — " +
+  "face shape (e.g. wide square face, full cheeks), eyebrows (shape, thickness), hair length, direction and parting (e.g. short cropped sides, top brushed forward, no bangs), " +
+  "ears (e.g. slightly protruding), nose (e.g. small wide button nose), mouth/smile, freckles, moles or other marks. No clothes, no background, no age.";
+
+/** Face-paragraph line for the distinguishing features. */
+export function featuresLine(features: string[] | null | undefined): string {
+  const f = (features || []).filter(Boolean);
+  return f.length ? `Distinguishing features of this child (keep every one; they are what makes the child recognizable): ${f.join("; ")}.` : "";
+}
 
 /** Replace the hair color words in a saved description with the avatar shade, keep the cut/style words. */
 export function hairWithShade(description: string, shade: HairShade): string {

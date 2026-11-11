@@ -9,13 +9,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { isLookOnly, lookFixInstruction, lookProblemsFrom, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
-import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, usesAvatarTraits, type AvatarTraits } from "../_shared/avatar-traits.ts";
+import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, AVATAR_LIKENESS_QUESTION, usesLikeness, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, usesAvatarTraits, type AvatarTraits } from "../_shared/avatar-traits.ts";
 import { coverProblemsFrom, keptTryAfterFailedRedraws } from "../_shared/cover-check.ts";
 import { buildIllustrationPrompt, referenceContent, referenceOrdinals, faceShare, type PromptHero, type PromptRefs } from "../_shared/illustration-prompt.ts";
-import { PIXAR_3D_QUESTION, STYLE_PROBLEM, hasStyleProblem, redrawFixInstruction, styleProblemsFrom, checkRedrawPicture, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
+import { PIXAR_3D_QUESTION, STYLE_PROBLEM, hasStyleProblem, redrawFixInstruction, styleProblemsFrom, checkRedrawPicture, shapeProblems, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
 import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
 import { LOOK_PROBLEMS, LOOK_KEPT_PREFIX } from "../_shared/look-check.ts";
-import { formatRule, backupSizeFor } from "../_shared/illustration-format.ts";
+import { formatRule, backupSizeFor, SHAPE_PROBLEM } from "../_shared/illustration-format.ts";
 import { reserveRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
 import { alignProfileGender } from "../_shared/profile-gender.ts";
 import { normalizeGender } from "../_shared/gender.ts";
@@ -157,7 +157,7 @@ async function checkIdentityMatch(
   pageOneImageUrl: string | null,
   apiKey: string,
   _strict = false,
-  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; cover?: boolean; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string } | null } = {},
+  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; cover?: boolean; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string; features?: string[] } | null } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   if (opts.cover) return await checkCoverAgainstAvatar(pageImageUrl, opts.avatarUrl ?? null, apiKey, opts);
   // The check is mandatory: asked a second time when the first call cannot run.
@@ -169,7 +169,7 @@ async function checkIdentityMatchOnce(
   pageImageUrl: string,
   pageOneImageUrl: string | null,
   apiKey: string,
-  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string } | null } = {},
+  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string; features?: string[] } | null } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   try {
     const hasRef = !!pageOneImageUrl;
@@ -195,9 +195,10 @@ async function checkIdentityMatchOnce(
       (avatarOn ? "The LAST image is the child's face reference picture (avatar). Compare the main child in " + img + " with it (ignore clothes):\n" +
         "- avatar_face_match: same face as the reference (face shape, nose, eyes)? false if clearly a different child.\n" +
         `- avatar_age_match: does the child look about ${opts.avatarCheck!.age} years old, same age as the reference? false if clearly younger or older.\n` +
-        `- avatar_hair_match: is the hair the same shade as the reference${opts.avatarCheck!.hair ? ` (expected: ${opts.avatarCheck!.hair})` : ""}? false if clearly lighter or darker.\n` : "") +
+        `- avatar_hair_match: is the hair the same shade as the reference${opts.avatarCheck!.hair ? ` (expected: ${opts.avatarCheck!.hair})` : ""}? false if clearly lighter or darker.\n` +
+        (opts.avatarCheck!.features?.length ? `- avatar_features_match: does the main child keep most of these features of the reference: ${opts.avatarCheck!.features.join("; ")}? false if two or more are clearly missing or different.\n` : "") : "") +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
-      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
@@ -218,6 +219,7 @@ async function checkIdentityMatchOnce(
     const end = jsonText.lastIndexOf("}");
     if (start === -1 || end === -1) return null;
     const p = JSON.parse(jsonText.slice(start, end + 1));
+    if (!opts.avatarCheck?.features?.length) delete p.avatar_features_match;
     const problems: string[] = [];
     if (hasRef && p.same_child === false) problems.push("different child");
     if (hasRef && p.same_style === false) problems.push("different style");
@@ -1586,6 +1588,9 @@ serve(async (req) => {
     let savedOutfit: string | null = null;
     let storyFormatRule = "";
     let consistentFraming = true;
+    let likenessOn = false;
+    let storyFormat: string | null = null;
+    let savedFeatures: string[] = [];
     let avatarTraitsOn = false;
     let avatarTraits: AvatarTraits | null = null;
     // New stories whose cover is the avatar copy: page 1 is a normal scene (no cover safe zone).
@@ -1593,7 +1598,10 @@ serve(async (req) => {
     // Kippah: the story's own saved choice only (never the child profile); girls never.
     let kippahInfo = { kippah: false, color: "" };
     if (storyId) {
-      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, cover_url").eq("id", storyId).maybeSingle();
+      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, cover_url").eq("id", storyId).maybeSingle();
+      storyFormat = (so as any)?.illustration_format ?? null;
+      likenessOn = usesLikeness((so as any)?.created_at);
+      savedFeatures = Array.isArray((so as any)?.hero_traits) ? (so as any).hero_traits : [];
       storyFormatRule = formatRule((so as any)?.illustration_format);
       avatarCoverStory = isAvatarCoverUrl((so as any)?.cover_url);
       consistentFraming = usesConsistentFraming((so as any)?.created_at);
@@ -1601,6 +1609,8 @@ serve(async (req) => {
       const sh = normalizeHairShade((so as any)?.hero_hair_shade);
       if (sh && (so as any)?.hero_eye_color && (so as any)?.hero_skin_tone) {
         avatarTraits = { hair: sh, eyes: (so as any).hero_eye_color, skin: (so as any).hero_skin_tone };
+        // Likeness stories without saved features yet: analyse the avatar again below.
+        if (likenessOn && !savedFeatures.length) avatarTraits = null;
       }
       // A redraw always reuses the story's saved outfit; a first drawing uses it only without parent clothes.
       if (!parentOutfitEn || isRedraw) savedOutfit = (so as any)?.story_outfit || null;
@@ -1764,7 +1774,7 @@ serve(async (req) => {
           method: "POST",
           headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
           body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "user", content: [
-            { type: "text", text: AVATAR_TRAITS_QUESTION },
+            { type: "text", text: likenessOn ? AVATAR_LIKENESS_QUESTION : AVATAR_TRAITS_QUESTION },
             { type: "image_url", image_url: { url: childPhotoSignedUrl } },
           ] }] }),
         });
@@ -1772,8 +1782,12 @@ serve(async (req) => {
         if (t) {
           await supabase.from("stories").update({ hero_hair_shade: t.hair, hero_eye_color: t.eyes, hero_skin_tone: t.skin })
             .eq("id", storyId).is("hero_hair_shade", null);
+          if (likenessOn && t.features?.length) {
+            await supabase.from("stories").update({ hero_traits: t.features }).eq("id", storyId).is("hero_traits", null);
+          }
           // Parallel page calls: everyone uses whatever was saved first.
-          const { data: saved } = await supabase.from("stories").select("hero_hair_shade, hero_eye_color, hero_skin_tone").eq("id", storyId).maybeSingle();
+          const { data: saved } = await supabase.from("stories").select("hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits").eq("id", storyId).maybeSingle();
+          if (Array.isArray((saved as any)?.hero_traits)) savedFeatures = (saved as any).hero_traits;
           const sh = normalizeHairShade((saved as any)?.hero_hair_shade);
           avatarTraits = sh ? { hair: sh, eyes: (saved as any).hero_eye_color || t.eyes, skin: (saved as any).hero_skin_tone || t.skin } : t;
           // Empty profile hair color gets the avatar shade, so the next story uses it too.
@@ -1790,14 +1804,23 @@ serve(async (req) => {
       console.log(`🧒 Avatar lock: age=${realAge} traits=${JSON.stringify(avatarTraits)}`);
     }
     const avatarLock = avatarTraitsOn ? avatarWinsRule(avatarTraits, realAge) : "";
+    const heroFeatures = likenessOn && childPhotoSignedUrl ? savedFeatures : [];
     const avatarCheck = avatarTraitsOn && childPhotoSignedUrl
-      ? { age: realAge, hair: avatarTraits?.hair || "" } : null;
+      ? { age: realAge, hair: avatarTraits?.hair || "", features: heroFeatures } : null;
     // Redraws of an existing page are always checked against the face reference (any story).
     const redrawAvatarCheck = avatarCheck ?? (childPhotoSignedUrl
       ? { age: realAgeText(childProfileAge ?? reqChildAge, ageRange), hair: "" } : null);
 
     const baseStoryOutfit = storyOutfit;
     const baseVisualAnchor = visualAnchor;
+    // Picture shape is measured on every drawing (no AI call): a wrong shape fails the check.
+    const withShape = <V extends { match: boolean; reason: string; problems: string[]; differences: string }>(image: string, v: V | null): V | null => {
+      if (!v) return v;
+      const sp = shapeProblems(image, storyFormat);
+      if (!sp.length) return v;
+      console.warn(`[SHAPE-CHECK] story=${storyId} wrong shape for ${storyFormat || "landscape"}`);
+      return { ...v, match: false, problems: [...v.problems, ...sp], reason: `${v.reason}; ${SHAPE_PROBLEM}` };
+    };
 
     // === PARALLEL ILLUSTRATION GENERATION ===
     // Each page is processed independently and concurrently
@@ -1825,7 +1848,7 @@ serve(async (req) => {
       // Build prompt directly from illustration_prompt — skip AI scene analysis for speed
       const basePrompt = page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
       const pageNarrative = (page.text || "").toString().slice(0, 400);
-      const cameraAngle = pickFramingAngle(page.page_number, lastPageNumber, 0, consistentFraming);
+      const cameraAngle = pickFramingAngle(page.page_number, lastPageNumber, 0, consistentFraming, likenessOn);
       const lighting = LIGHTING_OPTIONS[(page.page_number + 2) % LIGHTING_OPTIONS.length];
       const sceneBlock = pageNarrative
         ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
@@ -1836,7 +1859,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-');
       const sceneParts = [
         sceneBlock,
-        `CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. ${framingComposition(cameraAngle, consistentFraming)}`,
+        `CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. ${framingComposition(cameraAngle, consistentFraming, likenessOn)}`,
         effectiveAdventureLogic ? `Setting: ${effectiveAdventureLogic.background}. Theme: ${effectiveAdventureLogic.theme}.` : "",
       ];
       if (page.page_number === 1 && !avatarCoverStory) {
@@ -1875,6 +1898,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           characterProfile?.eyeColor ? `${characterProfile.eyeColor} eyes` : "",
         ].filter(Boolean).join(", "),
         traits: hasFace && avatarTraitsOn ? avatarTraits : null,
+        features: hasFace ? heroFeatures : null,
       };
       const scene = sceneParts.filter(Boolean).join("\n\n");
       const pageRules = [castBlock, pageCastRule(castText, childName), militaryLock];
@@ -2006,11 +2030,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           // First drawing of page 1 (the cover): compared only with the avatar.
           const coverCheck = page.page_number === 1 && !hadExisting;
           const pageAvatarCheck = hadExisting ? redrawAvatarCheck : avatarCheck;
-          const verdict = await checkIdentityMatch(publicPageUrl, pageRef, LOVABLE_API_KEY, isBackup, {
+          const verdict = withShape(base64Image, await checkIdentityMatch(publicPageUrl, pageRef, LOVABLE_API_KEY, isBackup, {
             outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
             eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
             cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck: pageAvatarCheck,
-          });
+          }));
           if (!verdict && hadExisting) {
             // Redraw that could not be checked (asked twice): the previous picture stays.
             identityCheck = "redraw not checked, old kept";
@@ -2065,7 +2089,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               const prevTry = tries[tries.length - 1];
               const lookList = prevTry.problems.filter((x) => (LOOK_PROBLEMS as readonly string[]).includes(x));
               const fix = [
-                redrawFixInstruction(prevTry.problems, { age: pageAvatarCheck?.age, hair: avatarTraits?.hair }),
+                redrawFixInstruction(prevTry.problems, { age: pageAvatarCheck?.age, hair: avatarTraits?.hair, features: heroFeatures, format: storyFormat }),
                 !coverCheck && lookList.length && !hasStyleProblem(prevTry.problems)
                   ? lookFixInstruction(lookList, prevTry.reason, characterProfile?.eyeColor, { age: realAge, hair: avatarTraits?.hair }).trim()
                   : "",
@@ -2083,11 +2107,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               acceptedImage = retryImage;
               identityRetried = true;
               const retryPublic = buildPublicIllustrationUrl(retryUrl);
-              const v2 = retryPublic ? await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
+              const v2 = retryPublic ? withShape(retryImage, await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
                 outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
                 eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
                 cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck: pageAvatarCheck,
-              }) : null;
+              })) : null;
               if (!v2) {
                 // The check could not run even after a second ask: count it as a failed try.
                 identityCheck = `redraw ${r}: check unavailable`;
@@ -2221,7 +2245,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         const secondPrompt = page.illustration_prompt_2;
         let secondImage: string | null = null;
 
-        const cameraAngle2 = pickFramingAngle(page.page_number, lastPageNumber, 3, consistentFraming);
+        const cameraAngle2 = pickFramingAngle(page.page_number, lastPageNumber, 3, consistentFraming, likenessOn);
         const lighting2 = LIGHTING_OPTIONS[(page.page_number + 5) % LIGHTING_OPTIONS.length];
         const sceneBlock2 = pageNarrative
           ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
@@ -2229,7 +2253,7 @@ ${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const scene2 = `${sceneBlock2}\n\nCAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. ${framingComposition(cameraAngle2, consistentFraming)}`;
+        const scene2 = `${sceneBlock2}\n\nCAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. ${framingComposition(cameraAngle2, consistentFraming, likenessOn)}`;
         const prompt2For = (refs: PromptRefs, fix = "") => buildIllustrationPrompt({ refs, hero, scene: scene2, rules: pageRules, formatRule: storyFormatRule, fix });
 
         // Same mandatory 3D Pixar check (and face check) as every picture: up to MAX_STYLE_REDRAWS redraws, else not saved.
@@ -2249,11 +2273,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             candidate = await generateIllustrationBackup((refs) => prompt2For(refs), { page1: coverReferenceUrl, face: childPhotoSignedUrl, leo: withLeo }, storyId, page.page_number);
           }
           if (!candidate) break;
-          const v = await checkRedrawPicture(candidate, childPhotoSignedUrl, LOVABLE_API_KEY, { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair, allowText: !!isLearningTopic });
+          const v = await checkRedrawPicture(candidate, childPhotoSignedUrl, LOVABLE_API_KEY, { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair, allowText: !!isLearningTopic, features: heroFeatures, format: storyFormat });
           if (v && v.problems.length === 0) secondImage = candidate;
           else {
             console.warn(`[Page ${page.page_number}] second picture failed check (${v?.reason || "check unavailable"})`);
-            secondFix = redrawFixInstruction(v?.problems || [STYLE_PROBLEM], { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair });
+            secondFix = redrawFixInstruction(v?.problems || [STYLE_PROBLEM], { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair, features: heroFeatures, format: storyFormat });
           }
         }
 

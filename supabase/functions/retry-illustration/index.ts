@@ -8,7 +8,7 @@ import { checkRedrawPicture, redrawDecision, redrawFixInstruction, MAX_STYLE_RED
 import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
 import { pickFramingAngle, framingComposition, usesConsistentFraming } from "../_shared/camera-framing.ts";
 import { reserveRedraws, releaseRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
-import { avatarWinsRule, normalizeHairShade, realAgeText, usesAvatarTraits } from "../_shared/avatar-traits.ts";
+import { avatarWinsRule, normalizeHairShade, realAgeText, usesAvatarTraits, usesLikeness } from "../_shared/avatar-traits.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
@@ -105,7 +105,7 @@ serve(async (req) => {
     // Verify story ownership (or admin)
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, cover_url")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, cover_url")
       .eq("id", storyId)
       .maybeSingle();
 
@@ -361,10 +361,14 @@ serve(async (req) => {
     const sh = normalizeHairShade((story as any).hero_hair_shade);
     const traits = traitsOn && sh && (story as any).hero_eye_color && (story as any).hero_skin_tone
       ? { hair: sh, eyes: (story as any).hero_eye_color, skin: (story as any).hero_skin_tone } : null;
+    const likenessOn = usesLikeness((story as any).created_at);
+    const heroFeatures: string[] = likenessOn && Array.isArray((story as any).hero_traits) ? (story as any).hero_traits : [];
+    const storyFormat: string | null = (story as any).illustration_format ?? null;
     const hero: PromptHero = {
       gender: (story as any).child_gender, ageText, outfit, kippah: kp.kippah, kippahColor: kp.color,
       lookText: childPhoto ? "" : hairToEnglish(ap),
       traits: childPhoto ? traits : null,
+      features: childPhoto ? heroFeatures : null,
     };
     const visualDescription = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
     // Family member in the reserves/army: fixed IDF uniform, never weapons or gear.
@@ -377,7 +381,7 @@ serve(async (req) => {
     const pageNarrative = ((page as any).text || "").toString().slice(0, 400);
     const { data: lastRow } = await supabase.from("story_pages").select("page_number").eq("story_id", storyId).order("page_number", { ascending: false }).limit(1).maybeSingle();
     const consistent = usesConsistentFraming((story as any).created_at);
-    const cameraAngle = pickFramingAngle(page.page_number, (lastRow as any)?.page_number ?? null, 0, consistent);
+    const cameraAngle = pickFramingAngle(page.page_number, (lastRow as any)?.page_number ?? null, 0, consistent, likenessOn);
     const sceneParts = [
       pageNarrative
         ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
@@ -385,7 +389,7 @@ ${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${visualDescription}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
         : `SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${visualDescription}`,
-      `CAMERA: ${cameraAngle}. ${framingComposition(cameraAngle, consistent)}`,
+      `CAMERA: ${cameraAngle}. ${framingComposition(cameraAngle, consistent, likenessOn)}`,
     ];
     if (page.page_number === 1 && !isAvatarCoverUrl((story as any).cover_url)) {
       // Older stories: page 1 is also cropped into the square library cover card.
@@ -485,7 +489,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     // Time budget: the browser waits for this answer (~150 s platform cut-off).
     const REDRAW_START_LIMIT_MS = 85_000;
     const HARD_LIMIT_MS = 140_000;
-    const checkOpts = { age: ageText, hair: traits?.hair, allowText: String(story.topic || "").startsWith("letter-") || String(story.topic || "").startsWith("number-") };
+    const checkOpts = { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, allowText: String(story.topic || "").startsWith("letter-") || String(story.topic || "").startsWith("number-") };
     const tries: { image: string; model: string; problems: string[]; reason: string }[] = [];
     let fix = "";
     for (let round = 0; round <= MAX_STYLE_REDRAWS; round++) {
@@ -501,7 +505,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       tries.push({ image: g.image, model: g.model, problems, reason: v?.reason || "check unavailable" });
       console.log(`[STYLE-CHECK] story=${storyId} page=${page.page_number} try ${round + 1}: ${problems.length ? problems.join(", ") : "pass"}`);
       if (!problems.length) break;
-      fix = redrawFixInstruction(problems, { age: ageText, hair: traits?.hair });
+      fix = redrawFixInstruction(problems, { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat });
     }
 
     const durationMs = Date.now() - genStart;

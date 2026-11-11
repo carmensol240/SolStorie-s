@@ -1,7 +1,7 @@
 // Detailed comparison of a page against page 1: eyes, hair tone, drawing style, outfit, chest emblem.
 // A page failing only these gets one redraw; if it still fails, the closer picture is kept and the
 // story becomes needs_attention (the saved log's identity_check starts with LOOK_KEPT_PREFIX).
-export const LOOK_PROBLEMS = ["eye color", "hair tone", "render style", "outfit vs page 1", "emblem", "avatar face", "avatar age", "avatar hair"] as const;
+export const LOOK_PROBLEMS = ["eye color", "hair tone", "render style", "outfit vs page 1", "emblem", "avatar face", "avatar age", "avatar hair", "avatar features"] as const;
 export const LOOK_KEPT_PREFIX = "look mismatch kept";
 export const MAX_LOOK_REDRAWS = 1;
 
@@ -16,6 +16,7 @@ export function lookProblemsFrom(p: Record<string, unknown>): string[] {
   if (p.avatar_face_match === false) out.push("avatar face");
   if (p.avatar_age_match === false) out.push("avatar age");
   if (p.avatar_hair_match === false) out.push("avatar hair");
+  if (p.avatar_features_match === false) out.push("avatar features");
   return out;
 }
 
@@ -32,6 +33,7 @@ export function lookFixInstruction(problems: string[], differences: string, eyeC
   if (problems.includes("emblem")) parts.push("the chest emblem must be identical to page 1 in shape and color (if page 1 has no emblem, draw none)");
   if (problems.includes("avatar face")) parts.push("the child's face must match the face reference picture exactly");
   if (problems.includes("avatar age")) parts.push(`the child must look exactly ${avatar?.age ? `${avatar.age} years old` : "the age of the face reference picture"}`);
+  if (problems.includes("avatar features")) parts.push("keep every distinguishing feature of the child in the face reference picture (face shape, eyebrows, hair cut and direction, ears, nose, marks)");
   if (problems.includes("avatar hair")) parts.push(`hair must be exactly ${avatar?.hair || "the shade in the face reference picture"}, as in the face reference picture`);
   return `\n\nCONSISTENCY FIX (previous attempt differed from page 1${differences ? `: ${differences}` : ""}): ${parts.join("; ")}.`;
 }

@@ -6,7 +6,7 @@
 //   3. STYLE (Pixar 3D), 4. SCENE, 5. one short RULES block, 6. fix after a failed check, 7. NEGATIVE.
 // Reference pictures are always attached in the same order: face, page reference, Leo.
 import { PIXAR_STYLE, leoRefNote, negativePromptFor } from "./style-config.ts";
-import type { AvatarTraits } from "./avatar-traits.ts";
+import { featuresLine, type AvatarTraits } from "./avatar-traits.ts";
 
 export interface PromptRefs {
   /** The child's face reference picture (avatar; the real photo only when there is no avatar). */
@@ -30,6 +30,8 @@ export interface PromptHero {
   lookText?: string;
   /** Hair/eyes/skin read from the avatar (new stories) — written inside the face paragraph. */
   traits?: AvatarTraits | null;
+  /** Distinguishing features read from the avatar (LIKENESS_CUTOFF stories). */
+  features?: string[] | null;
 }
 
 export interface IllustrationPromptInput {
@@ -68,7 +70,7 @@ export function faceBlock(n: number, hero: PromptHero): string {
   const age = ageWords(hero.ageText);
   const t = hero.traits;
   return `FACE — THE MOST IMPORTANT RULE. ${cap(img)} is the child's face reference picture and the ONLY source for the main child's face.
-The main child must be instantly recognizable as the exact child in ${img}, drawn as the same Pixar-style 3D character. Copy it feature by feature: face shape and jawline, cheeks and chin, eye shape, size, spacing and color, eyebrows, nose, mouth and smile, ears, skin tone, freckles or marks, hair color, hair length, hairline, parting and hairstyle${age ? `, and the age: ${age}` : ""}.${t ? ` As seen in ${img}: hair ${t.hair}, eyes ${t.eyes}, skin ${t.skin}.` : ""}
+The main child must be instantly recognizable as the exact child in ${img}, drawn as the same Pixar-style 3D character. Copy it feature by feature: face shape and jawline, cheeks and chin, eye shape, size, spacing and color, eyebrows, nose, mouth and smile, ears, skin tone, freckles or marks, hair color, hair length, hairline, parting and hairstyle${age ? `, and the age: ${age}` : ""}.${t ? ` As seen in ${img}: hair ${t.hair}, eyes ${t.eyes}, skin ${t.skin}.` : ""}${featuresLine(hero.features) ? ` ${featuresLine(hero.features)}` : ""}
 Do not beautify, idealize, slim, age up or down, or make the face generic; do not restyle the hair. If anything else in this request (scene text, rules or another image) disagrees about the face, hair, eyes, skin or age, ${img} wins. Only the clothes, pose, expression and scene change.`;
 }
 

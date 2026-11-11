@@ -1000,6 +1000,7 @@ export type Database = {
           hero_eye_color: string | null
           hero_hair_shade: string | null
           hero_skin_tone: string | null
+          hero_traits: string[] | null
           id: string
           illustration_format: string
           is_daily_story: boolean | null
@@ -1043,6 +1044,7 @@ export type Database = {
           hero_eye_color?: string | null
           hero_hair_shade?: string | null
           hero_skin_tone?: string | null
+          hero_traits?: string[] | null
           id?: string
           illustration_format?: string
           is_daily_story?: boolean | null
@@ -1086,6 +1088,7 @@ export type Database = {
           hero_eye_color?: string | null
           hero_hair_shade?: string | null
           hero_skin_tone?: string | null
+          hero_traits?: string[] | null
           id?: string
           illustration_format?: string
           is_daily_story?: boolean | null

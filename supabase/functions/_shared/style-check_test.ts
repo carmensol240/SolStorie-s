@@ -48,3 +48,23 @@ Deno.test("first-drawing cover: a flat picture is a problem and the kept cover p
   ]);
   assertEquals(kept?.best.reason, "3d");
 });
+
+Deno.test("likeness: a tall picture in a landscape book is a wrong shape and gets a shape fix", async () => {
+  const { shapeProblems, redrawFixInstruction } = await import("./style-check.ts");
+  const png = (w: number, h: number) => {
+    const b = new Uint8Array(33); b.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
+    const dv = new DataView(b.buffer); dv.setUint32(16, w); dv.setUint32(20, h);
+    let bin = ""; b.forEach((x) => bin += String.fromCharCode(x)); return `data:image/png;base64,${btoa(bin)}`;
+  };
+  if (shapeProblems(png(784, 1360), "landscape").join() !== "wrong shape") throw new Error("tall landscape passed");
+  if (shapeProblems(png(1408, 768), "landscape").length) throw new Error("wide landscape failed");
+  if (shapeProblems(png(1024, 1024), "square").length) throw new Error("square failed");
+  if (!redrawFixInstruction(["wrong shape"], { format: "landscape" }).includes("3:2")) throw new Error("no shape fix");
+});
+
+Deno.test("likeness: missing distinguishing features fail the face check and are named in the fix", async () => {
+  const { redrawProblemsFrom, redrawFixInstruction } = await import("./style-check.ts");
+  const p = redrawProblemsFrom({ pixar_3d: true, avatar_features_match: false }, { hasFace: true });
+  if (!p.includes("avatar features")) throw new Error("features not checked");
+  if (!redrawFixInstruction(p, { features: ["no bangs"] }).includes("no bangs")) throw new Error("features not in fix");
+});
