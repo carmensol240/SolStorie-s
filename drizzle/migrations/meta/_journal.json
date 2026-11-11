@@ -176,6 +176,13 @@
       "when": 1794337989216,
       "tag": "0024_stories_text_issues",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794394649326,
+      "tag": "0025_mark_stuck_stories",
+      "breakpoints": true
     }
   ]
 }
