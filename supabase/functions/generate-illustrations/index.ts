@@ -6,6 +6,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
+import { isLookOnly, lookFixInstruction, lookProblemsFrom, LOOK_KEPT_PREFIX, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
 import { formatRule, backupSizeFor } from "../_shared/illustration-format.ts";
 import { reserveRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
 import { alignProfileGender } from "../_shared/profile-gender.ts";
@@ -183,8 +184,8 @@ async function checkIdentityMatch(
   pageOneImageUrl: string | null,
   apiKey: string,
   _strict = false,
-  opts: { outfit?: string; allowText?: boolean } = {},
-): Promise<{ match: boolean; reason: string; problems: string[] } | null> {
+  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string } = {},
+): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   try {
     const hasRef = !!pageOneImageUrl;
     const img = hasRef ? "Image B" : "The image";
@@ -193,20 +194,26 @@ async function checkIdentityMatch(
       "Answer each question about " + img + ":\n" +
       (hasRef ? "- same_child: does B show the same main child as A (hair color/length/texture, face, apparent age)? Ignore pose and background.\n" +
         "- same_style: is B the same polished Pixar-like 3D CGI render style as A (not flat 2D, not simplified cartoon, not painterly, not photo)?\n" +
-        "- copied_composition: does B nearly copy A's composition (same pose, same camera angle and same layout)?\n" : "") +
+        "- copied_composition: does B nearly copy A's composition (same pose, same camera angle and same layout)?\n" +
+        "Be strict: compare the main child in B to A detail by detail and answer false whenever in doubt.\n" +
+        `- eye_color_match: are the main child's eyes in B the same color as in A${opts.eyeColor ? ` (expected: ${opts.eyeColor})` : ""}? false if e.g. blue vs brown.\n` +
+        `- hair_tone_match: is the hair the same tone and length as in A${opts.hair ? ` (expected: ${opts.hair})` : ""}? false if clearly lighter/darker or a different length.\n` +
+        "- render_style_match: is B drawn in exactly the same 3D render look as A (same lighting, skin shading, proportions)? false for flat 2D, painterly, watercolor or a noticeably different 3D/animation style.\n" +
+        "- outfit_match_page1: does the main child wear the same clothes with the same colors as in A? Ignore clothes hidden by framing.\n" +
+        "- emblem_match: is any emblem/logo on the child's chest the same shape and color as in A (true if neither has one, or it is not visible in B)?\n" : "") +
       "- photo_realistic: does it look like a real photograph or photorealistic image of real people, instead of a stylized Pixar-like 3D animated render?\n" +
       "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)? false only if the main child is seen only from behind or the face is hidden/not shown.\n" +
       "- hero_twice: does the main child appear twice, or is there a second child who looks almost identical to the main child (a twin/clone)? Different-looking friends do NOT count.\n" +
       "- has_text: are there clearly readable written letters or words drawn in the picture (captions, signs, labels, speech bubbles)? Toy blocks, logos, emblems, patterns and textures are NOT text. Answer false unless you can actually read letters.\n" +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
-      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "google/gemini-2.5-flash-lite", messages: [{ role: "user", content }] }),
+      body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "user", content }] }),
     });
     if (!res.ok) {
       console.warn(`[IDENTITY-CHECK] gateway returned ${res.status} — skipping check`);
@@ -228,8 +235,10 @@ async function checkIdentityMatch(
     if (p.hero_twice === true) problems.push("hero twice");
     if (!opts.allowText && p.has_text === true) problems.push("text in image");
     if (opts.outfit && p.outfit_ok === false) problems.push("wrong outfit");
+    if (hasRef) problems.push(...lookProblemsFrom(p));
+    const differences = String(p.differences || "").slice(0, 160);
     const reason = `${problems.join(", ")}${p.reason ? ` (${String(p.reason).slice(0, 80)})` : ""}`;
-    return { match: problems.length === 0, problems, reason: problems.length ? reason : String(p.reason || "ok").slice(0, 120) };
+    return { match: problems.length === 0, problems, differences, reason: problems.length ? `${reason}${differences ? ` [${differences}]` : ""}` : String(p.reason || "ok").slice(0, 120) };
   } catch (e) {
     console.warn("[IDENTITY-CHECK] failed:", (e as Error)?.message);
     return null;
@@ -2091,6 +2100,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           const pageRef = page.page_number !== 1 ? coverReferenceUrl : null;
           const verdict = await checkIdentityMatch(publicPageUrl, pageRef, LOVABLE_API_KEY, isBackup, {
             outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
+            eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
           });
           if (!verdict) {
             identityCheck = "unavailable";
@@ -2122,15 +2132,22 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               { image: base64Image, problems: verdict.problems, reason: verdict.reason },
             ];
             let passed = false;
-            for (let r = 1; r <= MAX_IDENTITY_REDRAWS && !passed; r++) {
+            // Only eyes/hair tone/style/outfit/emblem differ from page 1: one redraw that names the differences.
+            const lookOnly = isLookOnly(verdict.problems);
+            const maxRedraws = lookOnly ? MAX_LOOK_REDRAWS : MAX_IDENTITY_REDRAWS;
+            for (let r = 1; r <= maxRedraws && !passed; r++) {
+              const prevTry = tries[tries.length - 1];
+              const redrawPrompt = isLookOnly(prevTry.problems)
+                ? illustrationPrompt + lookFixInstruction(prevTry.problems, prevTry.reason, characterProfile?.eyeColor)
+                : illustrationPrompt;
               const retryImage = childPhotoSignedUrl
                 ? await generateIllustrationWithFace(
-                    illustrationPrompt, childPhotoSignedUrl, characterProfile,
+                    redrawPrompt, childPhotoSignedUrl, characterProfile,
                     storyOutfit, visualAnchor, effectiveAdventureLogic,
                     coverReferenceUrl,
                   )
                 : await generateIllustrationGeminiNoFace(
-                    illustrationPrompt, characterProfile,
+                    redrawPrompt, characterProfile,
                     storyOutfit, visualAnchor, effectiveAdventureLogic,
                     coverReferenceUrl,
                   );
@@ -2147,6 +2164,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               const retryPublic = buildPublicIllustrationUrl(retryUrl);
               const v2 = retryPublic ? await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
                 outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
+            eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
               }) : null;
               if (!v2) {
                 identityCheck = `redraw ${r}: check unavailable`;
@@ -2159,6 +2177,19 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
                 tries.push({ image: retryImage, problems: v2.problems, reason: v2.reason });
                 console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} MISMATCH — ${v2.reason}`);
               }
+            }
+            if (!passed && !hadExisting && tries.every((t) => isLookOnly(t.problems))) {
+              // Still differs only in look: keep the closer picture (fewest problems) so the page
+              // isn't empty, and mark the story needs_attention via the log prefix + admin alert.
+              const best = tries.reduce((a, b) => (b.problems.length < a.problems.length ? b : a));
+              if (best !== tries[tries.length - 1]) {
+                const bestUrl = await uploadImageToStorage(supabase, best.image, storyId, page.page_number);
+                if (bestUrl) { illustrationUrl = bestUrl; acceptedImage = best.image; }
+              }
+              identityCheck = `${LOOK_KEPT_PREFIX}: ${best.reason}`.slice(0, 300);
+              passed = true;
+              await notifyIllustrationIssue(supabase, storyId, page.page_number,
+                `העמוד נשמר, אבל הוא שונה מעמוד 1 (${best.problems.join(", ")}) גם אחרי ציור מחדש – דורש טיפול`, true);
             }
             if (!passed) {
               const onlyHidden = tries.filter((t) => t.problems.length === 1 && t.problems[0] === "hero not visible");
