@@ -2178,10 +2178,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
                 console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} MISMATCH — ${v2.reason}`);
               }
             }
-            if (!passed && !hadExisting && tries.every((t) => isLookOnly(t.problems))) {
-              // Still differs only in look: keep the closer picture (fewest problems) so the page
-              // isn't empty, and mark the story needs_attention via the log prefix + admin alert.
-              const best = tries.reduce((a, b) => (b.problems.length < a.problems.length ? b : a));
+            const lookTries = tries.filter((t) => isLookOnly(t.problems));
+            if (!passed && !hadExisting && lookTries.length > 0) {
+              // Some try differs only in look (eyes/hair tone/style/outfit/emblem): keep the closest
+              // such picture so the page isn't empty, and mark the story needs_attention (log prefix + alert).
+              const best = lookTries.reduce((a, b) => (b.problems.length < a.problems.length ? b : a));
               if (best !== tries[tries.length - 1]) {
                 const bestUrl = await uploadImageToStorage(supabase, best.image, storyId, page.page_number);
                 if (bestUrl) { illustrationUrl = bestUrl; acceptedImage = best.image; }
