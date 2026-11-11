@@ -3,6 +3,7 @@
 // Pixar-like 3D render. Clothes, emblem and "no reference" never count against it, and after the
 // redraws it is never left empty: the closest picture is kept and the story needs attention.
 import { isLookOnly, LOOK_KEPT_PREFIX } from "./look-check.ts";
+import { closestTryIndex, styleProblemsFrom } from "./style-check.ts";
 
 /** identity_check prefix of a cover kept after failed redraws; starts with LOOK_KEPT_PREFIX so the story is needs_attention. */
 export const COVER_KEPT_PREFIX = `${LOOK_KEPT_PREFIX} (cover vs avatar)`;
@@ -16,7 +17,8 @@ export function coverProblemsFrom(p: Record<string, unknown>, opts: { hasAvatar:
     if (p.eye_color_match === false) out.push("eye color");
   }
   if (p.render_style_match === false) out.push("render style");
-  if (p.photo_realistic === true) out.push("realistic style");
+  // Mandatory 3D Pixar check (pixar_3d) + photo-realistic.
+  out.push(...styleProblemsFrom(p));
   if (p.hero_face_visible === false) out.push("hero not visible");
   if (p.hero_twice === true) out.push("hero twice");
   if (!opts.allowText && p.has_text === true) out.push("text in image");
@@ -36,7 +38,8 @@ export function keptTryAfterFailedRedraws<T extends CheckedTry>(
   if (hadExisting || tries.length === 0) return null;
   const closest = (list: T[]) => list.reduce((a, b) => (b.problems.length < a.problems.length ? b : a));
   if (pageNumber === 1) {
-    const best = closest(tries);
+    // Closest try, preferring one that passed the 3D Pixar check.
+    const best = tries[closestTryIndex(tries)];
     return { best, identityCheck: `${COVER_KEPT_PREFIX}: ${best.reason}`.slice(0, 300), cover: true };
   }
   const lookTries = tries.filter((t) => isLookOnly(t.problems));

@@ -1522,6 +1522,10 @@ const [currentPage, setCurrentPage] = useState(0);
           toast({ title: REDRAW_LIMIT_MESSAGE, variant: 'destructive' });
           return;
         }
+        if (msg.includes('QUALITY_CHECK_FAILED')) {
+          toast({ title: 'הציור החדש לא עבר את בדיקת האיכות', description: 'האיור הקודם נשאר בעמוד', variant: 'destructive' });
+          return;
+        }
         throw error;
       }
 

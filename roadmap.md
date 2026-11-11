@@ -129,3 +129,8 @@
 - [x] Official cast introductions in the writer prompt
 - [x] Pictures: only characters named on the page, each once; cast official outfits; no US/foreign flags (IDF only)
 - [x] Test taste via admin path (dad-in-reserves) — text passed; pictures: page 4 OK, page 1 held by the look check, page 3 stopped mid-redraw (reported, not fixed)
+
+## Likeness to the avatar (Nov 2026)
+- [x] Stage 2: one shared drawing instruction, avatar = only face reference, page 1 only clothes/style, short rules block, no photo when an avatar exists
+- [x] Stage 3: mandatory 3D Pixar check on every picture + face check on redraws, 2 corrected redraws, else old picture stays + admin alert; tests
+- [x] Experiment on test child Noam: same page from avatar vs photo (nothing saved to a story)

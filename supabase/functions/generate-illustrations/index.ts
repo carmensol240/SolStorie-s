@@ -11,6 +11,10 @@ import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { isLookOnly, lookFixInstruction, lookProblemsFrom, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
 import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, usesAvatarTraits, type AvatarTraits } from "../_shared/avatar-traits.ts";
 import { coverProblemsFrom, keptTryAfterFailedRedraws } from "../_shared/cover-check.ts";
+import { buildIllustrationPrompt, referenceContent, referenceOrdinals, faceShare, type PromptHero, type PromptRefs } from "../_shared/illustration-prompt.ts";
+import { PIXAR_3D_QUESTION, STYLE_PROBLEM, hasStyleProblem, redrawFixInstruction, styleProblemsFrom, checkRedrawPicture, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
+import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
+import { LOOK_PROBLEMS, LOOK_KEPT_PREFIX } from "../_shared/look-check.ts";
 import { formatRule, backupSizeFor } from "../_shared/illustration-format.ts";
 import { reserveRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
 import { alignProfileGender } from "../_shared/profile-gender.ts";
@@ -144,41 +148,6 @@ function isRefusal(data: any): string | null {
 // How many times a page that fails the look check is redrawn (each redraw is checked again).
 const MAX_IDENTITY_REDRAWS = 2;
 
-// Admin alert + email for a page that still fails the look check after all redraws.
-// Never throws: a failed alert must not stop the drawing.
-async function notifyIllustrationIssue(supabase: any, storyId: string, pageNumber: number, message: string, held: boolean) {
-  try {
-    const { data: story } = await supabase.from("stories").select("user_id, child_name").eq("id", storyId).maybeSingle();
-    if (story?.user_id) {
-      await supabase.from("admin_alerts").insert({
-        user_id: story.user_id,
-        alert_type: held ? "illustration_held" : "illustration_hero_hidden",
-        message: `סיפור ${storyId} עמוד ${pageNumber}: ${message}`.slice(0, 1000),
-      });
-    }
-    const key = Deno.env.get("RESEND_API_KEY");
-    if (!key) { console.warn("[ILLUSTRATION-ALERT] RESEND_API_KEY missing — email skipped"); return; }
-    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
-    const link = `https://soulstory.co.il/story/${storyId}`;
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "SolStorie's™ <noreply@soulstory.co.il>",
-        to: ["solstories.nlp@gmail.com"],
-        subject: `${held ? "⚠️ עמוד ממתין לטיפול" : "ℹ️ עמוד נשמר, הגיבור לא נראה מלפנים"} – ${story?.child_name || ""} עמוד ${pageNumber}`,
-        html: `<div dir="rtl" style="font-family:Arial,sans-serif">
-          <p>${esc(message)}</p>
-          <p>סיפור: ${esc(story?.child_name || "")} (${storyId})<br/>עמוד: ${pageNumber}</p>
-          <p><a href="${link}">פתיחת הסיפור</a> · <a href="https://soulstory.co.il/admin/dashboard">ניהול</a></p></div>`,
-      }),
-    });
-    if (!res.ok) console.warn("[ILLUSTRATION-ALERT] email failed", res.status, await res.text());
-  } catch (e) {
-    console.warn("[ILLUSTRATION-ALERT] failed:", (e as Error)?.message);
-  }
-}
-
 // Cheap vision check of a freshly generated page. With a page-1 reference it checks the
 // same child + same 3D style; on every page it checks that the hero appears once, that no
 // text is drawn, that page 1's composition was not copied and that the clothes match.
@@ -191,6 +160,17 @@ async function checkIdentityMatch(
   opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; cover?: boolean; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string } | null } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   if (opts.cover) return await checkCoverAgainstAvatar(pageImageUrl, opts.avatarUrl ?? null, apiKey, opts);
+  // The check is mandatory: asked a second time when the first call cannot run.
+  return (await checkIdentityMatchOnce(pageImageUrl, pageOneImageUrl, apiKey, opts))
+    ?? (await checkIdentityMatchOnce(pageImageUrl, pageOneImageUrl, apiKey, opts));
+}
+
+async function checkIdentityMatchOnce(
+  pageImageUrl: string,
+  pageOneImageUrl: string | null,
+  apiKey: string,
+  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string } | null } = {},
+): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   try {
     const hasRef = !!pageOneImageUrl;
     const img = hasRef ? "Image B" : "The image";
@@ -207,6 +187,7 @@ async function checkIdentityMatch(
         "- render_style_match: is B drawn in exactly the same 3D render look as A (same lighting, skin shading, proportions)? false for flat 2D, painterly, watercolor or a noticeably different 3D/animation style.\n" +
         "- outfit_match_page1: does the main child wear the same clothes with the same colors as in A? Ignore clothes hidden by framing.\n" +
         "- emblem_match: is any emblem/logo on the child's chest the same shape and color as in A (true if neither has one, or it is not visible in B)?\n" : "") +
+      PIXAR_3D_QUESTION +
       "- photo_realistic: does it look like a real photograph or photorealistic image of real people, instead of a stylized Pixar-like 3D animated render?\n" +
       "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)? false only if the main child is seen only from behind or the face is hidden/not shown.\n" +
       "- hero_twice: does the main child appear twice, or is there a second child who looks almost identical to the main child (a twin/clone)? Different-looking friends do NOT count.\n" +
@@ -216,7 +197,7 @@ async function checkIdentityMatch(
         `- avatar_age_match: does the child look about ${opts.avatarCheck!.age} years old, same age as the reference? false if clearly younger or older.\n` +
         `- avatar_hair_match: is the hair the same shade as the reference${opts.avatarCheck!.hair ? ` (expected: ${opts.avatarCheck!.hair})` : ""}? false if clearly lighter or darker.\n` : "") +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
-      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
@@ -224,7 +205,7 @@ async function checkIdentityMatch(
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "user", content }] }),
+      body: JSON.stringify({ model: "google/gemini-3.8-flash", messages: [{ role: "user", content }] }),
     });
     if (!res.ok) {
       console.warn(`[IDENTITY-CHECK] gateway returned ${res.status} — skipping check`);
@@ -241,12 +222,13 @@ async function checkIdentityMatch(
     if (hasRef && p.same_child === false) problems.push("different child");
     if (hasRef && p.same_style === false) problems.push("different style");
     if (hasRef && p.copied_composition === true) problems.push("copied page 1");
-    if (p.photo_realistic === true) problems.push("realistic style");
+    problems.push(...styleProblemsFrom(p)); // mandatory 3D Pixar check
     if (p.hero_face_visible === false) problems.push("hero not visible");
     if (p.hero_twice === true) problems.push("hero twice");
     if (!opts.allowText && p.has_text === true) problems.push("text in image");
     if (opts.outfit && p.outfit_ok === false) problems.push("wrong outfit");
     if (hasRef) problems.push(...lookProblemsFrom(p));
+    else if (avatarOn) problems.push(...lookProblemsFrom(p).filter((x) => x.startsWith("avatar ")));
     const differences = String(p.differences || "").slice(0, 160);
     const reason = `${problems.join(", ")}${p.reason ? ` (${String(p.reason).slice(0, 80)})` : ""}`;
     return { match: problems.length === 0, problems, differences, reason: problems.length ? `${reason}${differences ? ` [${differences}]` : ""}` : String(p.reason || "ok").slice(0, 120) };
@@ -260,6 +242,16 @@ async function checkIdentityMatch(
 // eyes and a Pixar-like 3D render — plus the general picture checks. Clothes, emblem and
 // "no reference" never count (see _shared/cover-check.ts). Returns null when the check cannot run.
 async function checkCoverAgainstAvatar(
+  pageImageUrl: string,
+  avatarUrl: string | null,
+  apiKey: string,
+  opts: { allowText?: boolean; eyeColor?: string; hair?: string } = {},
+): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
+  return (await checkCoverAgainstAvatarOnce(pageImageUrl, avatarUrl, apiKey, opts))
+    ?? (await checkCoverAgainstAvatarOnce(pageImageUrl, avatarUrl, apiKey, opts));
+}
+
+async function checkCoverAgainstAvatarOnce(
   pageImageUrl: string,
   avatarUrl: string | null,
   apiKey: string,
@@ -279,18 +271,19 @@ async function checkCoverAgainstAvatar(
           `- eye_color_match: are the eyes the same color as in A${opts.eyeColor ? ` (expected: ${opts.eyeColor})` : ""}? false only if clearly different (e.g. blue vs brown).\n`
         : "") +
       "- render_style_match: is " + img + " a polished Pixar-like 3D CGI render? false for flat 2D, painterly, watercolor or a photo.\n" +
+      PIXAR_3D_QUESTION +
       "- photo_realistic: does it look like a real photograph or photorealistic image of real people?\n" +
       "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)?\n" +
       "- hero_twice: does the main child appear twice, or is there a near-identical twin/clone? Different-looking friends do NOT count.\n" +
       "- has_text: are there clearly readable written letters or words drawn in the picture? Toy blocks, logos, emblems, patterns are NOT text.\n" +
-      'Answer strict JSON only: {"same_child":bool,"hair_tone_match":bool,"eye_color_match":bool,"render_style_match":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"hair_tone_match":bool,"eye_color_match":bool,"render_style_match":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (avatarUrl) content.push({ type: "image_url", image_url: { url: avatarUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: [{ role: "user", content }] }),
+      body: JSON.stringify({ model: "google/gemini-3.8-flash", messages: [{ role: "user", content }] }),
     });
     if (!res.ok) {
       console.warn(`[COVER-CHECK] gateway returned ${res.status} — skipping check`);
@@ -456,21 +449,11 @@ interface IllustrationResult {
   durationMs?: number;
 }
 
-// Helper: generate illustration with face reference via Gemini Image Generation
-// Uses google/gemini-3-pro-image-preview for text-to-image with face reference
-/** Leo's cast card is in the prompt only when Leo is named on the page (and the hero is not called Leo). */
-function pageHasLeo(prompt: string): boolean {
-  return prompt.includes("\n- LEO: ");
-}
-
-async function generateIllustrationWithFace(
+// MAIN image service. The prompt comes from buildIllustrationPrompt (_shared/illustration-prompt.ts);
+// pictures are attached in its fixed order: face reference, page reference, Leo.
+async function generateIllustrationMain(
   prompt: string,
-  childPhotoUrl: string,
-  characterProfile: CharacterProfile | null,
-  storyOutfit: string,
-  visualAnchor: string,
-  adventureLogic?: { outfit: string; background: string; theme: string },
-  coverReferenceUrl?: string | null,
+  refs: { face?: string | null; canon?: string | null; leo?: boolean },
   outcome: GenOutcome = {},
 ): Promise<string | null> {
   try {
@@ -479,44 +462,9 @@ async function generateIllustrationWithFace(
       console.error("LOVABLE_API_KEY not configured for Gemini Image Generation");
       return null;
     }
-
-    const adventureInstruction = adventureLogic
-      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
-      : "";
-
-    const coverReferenceBlock = coverReferenceUrl
-      ? `\n\nSTYLE & CHARACTER REFERENCE (SECOND IMAGE): The SECOND image attached is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that second image EXACTLY — same face shape, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the second image as the canonical look of this character. Only the character's identity and rendering style carry over. Do NOT copy its composition, pose, camera angle or background — draw a completely new picture for this scene.`
-      : "";
-
-    const illustrationPrompt = `FACE REFERENCE (FIRST IMAGE): The main character's face MUST be an EXACT 3D Pixar rendering of the child in the FIRST reference photo. Keep all facial features, hair color, hair texture, and skin tone identical.${coverReferenceBlock}
-
-STYLE: ${PIXAR_STYLE}
-
-${adventureInstruction}
-
-SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
-
-${CHARACTER_CONSISTENCY_PROMPT}
-
-NEGATIVE: ${CAST_NEGATIVE_PROMPT}
-
-${NO_UI_NEGATIVE}`;
-
-    console.log(`[IMG-GEN-FULL-PROMPT] ${JSON.stringify(illustrationPrompt)}`);
-    console.log(`Generating illustration via Gemini Image Generation (face reference${coverReferenceUrl ? " + cover reference" : ""})...`);
-
-    const messageContent: any[] = [
-      { type: "image_url", image_url: { url: childPhotoUrl } },
-    ];
-    if (coverReferenceUrl) {
-      messageContent.push({ type: "image_url", image_url: { url: coverReferenceUrl } });
-    }
-    // Leo's official picture always goes after the hero's own pictures.
-    if (pageHasLeo(prompt)) {
-      messageContent.push({ type: "image_url", image_url: { url: LEO_REF_URL } });
-      messageContent.push({ type: "text", text: leoRefNote(coverReferenceUrl ? "THIRD" : "SECOND") });
-    }
-    messageContent.push({ type: "text", text: illustrationPrompt });
+    console.log(`[IMG-GEN-FULL-PROMPT] ${JSON.stringify(prompt)}`);
+    console.log(`Generating illustration (face=${!!refs.face}, page ref=${!!refs.canon}, leo=${!!refs.leo}, face share=${faceShare(prompt)}%)...`);
+    const content = referenceContent({ face: refs.face, canon: refs.canon, leo: refs.leo ? LEO_REF_URL : null }, prompt);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -526,12 +474,9 @@ ${NO_UI_NEGATIVE}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
+        model: "google/gemini-3-pro-image",
         modalities: ["image", "text"],
-        messages: [{
-          role: "user",
-          content: messageContent,
-        }],
+        messages: [{ role: "user", content }],
       }),
     });
 
@@ -546,11 +491,10 @@ ${NO_UI_NEGATIVE}`;
 
     let data: any;
     try {
-      const rawText = await response.text();
-      data = JSON.parse(rawText);
+      data = JSON.parse(await response.text());
     } catch (parseErr) {
       console.error("Gemini Image Gen: Failed to parse response JSON:", parseErr);
-      await logError("illustration_gemini_error", `Gemini Image Gen: JSON parse failed - ${parseErr?.message || parseErr}`, { model: "google/gemini-3-pro-image-preview" });
+      await logError("illustration_gemini_error", `Gemini Image Gen: JSON parse failed - ${(parseErr as Error)?.message || parseErr}`, { model: "google/gemini-3-pro-image" });
       return null;
     }
 
@@ -558,12 +502,10 @@ ${NO_UI_NEGATIVE}`;
     const refusal = imageUrl ? null : isRefusal(data);
     outcome.kind = imageUrl ? "ok" : refusal ? "refused" : "transient";
     outcome.detail = refusal || (imageUrl ? undefined : "no image in response");
-
     if (imageUrl) {
       console.log("Gemini illustration generated successfully");
       return imageUrl;
     }
-
     console.warn("Gemini Image Generation: no image in response", JSON.stringify(data).substring(0, 200));
     return null;
   } catch (error) {
@@ -572,121 +514,7 @@ ${NO_UI_NEGATIVE}`;
     outcome.detail = isTimeout ? "timeout" : String((error as Error)?.message || error).slice(0, 120);
     const errorType = isTimeout ? "illustration_timeout" : "illustration_gemini_error";
     console.error("Error in Gemini Image Generation:", error);
-    await logError(errorType, `Gemini Image Gen: ${error?.message || error}`, { model: "google/gemini-3-pro-image-preview" });
-    return null;
-  }
-}
-
-// Helper: generate illustration WITHOUT face reference via Gemini Image Generation
-// Same Pixar 3D CGI style as face-reference version for visual consistency
-async function generateIllustrationGeminiNoFace(
-  prompt: string,
-  characterProfile: CharacterProfile | null,
-  storyOutfit: string,
-  visualAnchor: string,
-  adventureLogic?: { outfit: string; background: string; theme: string },
-  coverReferenceUrl?: string | null,
-  outcome: GenOutcome = {},
-): Promise<string | null> {
-  try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured for Gemini Image Generation");
-      return null;
-    }
-
-    const adventureInstruction = adventureLogic
-      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
-      : "";
-
-    const coverReferenceBlock = coverReferenceUrl
-      ? `\n\nSTYLE & CHARACTER REFERENCE (ATTACHED IMAGE): The attached image is a finished Pixar 3D illustration of the SAME main character from EARLIER in this same storybook. The character in this new page MUST MATCH that image EXACTLY — same face, same hair color/style, same skin tone, same outfit, same proportions, same Pixar 3D rendering style. Treat the attached image as the canonical look of this character. Only the character's identity and rendering style carry over. Do NOT copy its composition, pose, camera angle or background — draw a completely new picture for this scene.`
-      : `\n\nNO PHOTO: Create the main character exactly from the CHARACTER LOCK description above (gender, age, hair, outfit). Keep this exact look.`;
-
-    const illustrationPrompt = `${visualAnchor}${coverReferenceBlock}
-
-STYLE: ${PIXAR_STYLE}
-
-${adventureInstruction}
-
-SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
-
-${CHARACTER_CONSISTENCY_PROMPT}
-
-NEGATIVE: ${NEGATIVE_PROMPT}
-
-${NO_UI_NEGATIVE}`;
-
-    console.log(`[IMG-GEN-FULL-PROMPT] ${JSON.stringify(illustrationPrompt)}`);
-    console.log(`Generating illustration via Gemini Image Generation (no face reference${coverReferenceUrl ? ", with cover reference" : ""})...`);
-
-    const withLeo = pageHasLeo(prompt);
-    const messageContent: any = coverReferenceUrl || withLeo
-      ? [
-          ...(coverReferenceUrl ? [{ type: "image_url", image_url: { url: coverReferenceUrl } }] : []),
-          ...(withLeo ? [
-            { type: "image_url", image_url: { url: LEO_REF_URL } },
-            { type: "text", text: leoRefNote(coverReferenceUrl ? "SECOND" : "FIRST") },
-          ] : []),
-          { type: "text", text: illustrationPrompt },
-        ]
-      : illustrationPrompt;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      signal: AbortSignal.timeout(120_000),
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
-        modalities: ["image", "text"],
-        messages: [{
-          role: "user",
-          content: messageContent,
-        }],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => "no body");
-      outcome.kind = (response.status === 429 || response.status >= 500) ? "transient" : "terminal";
-      outcome.detail = `http ${response.status}`;
-      console.error(`Gemini Image Generation (no face) failed: ${response.status} - ${errorBody}`);
-      await logError("illustration_gemini_noface_error", `Gemini no-face failed: ${response.status}`, { status: response.status, body: errorBody.substring(0, 500) });
-      return null;
-    }
-
-    let data: any;
-    try {
-      const rawText = await response.text();
-      data = JSON.parse(rawText);
-    } catch (parseErr) {
-      console.error("Gemini Image Gen (no face): Failed to parse response JSON:", parseErr);
-      await logError("illustration_gemini_noface_error", `Gemini no-face: JSON parse failed - ${parseErr?.message || parseErr}`, { model: "google/gemini-3-pro-image-preview" });
-      return null;
-    }
-
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    const refusal = imageUrl ? null : isRefusal(data);
-    outcome.kind = imageUrl ? "ok" : refusal ? "refused" : "transient";
-    outcome.detail = refusal || (imageUrl ? undefined : "no image in response");
-
-    if (imageUrl) {
-      console.log("Gemini illustration (no face) generated successfully");
-      return imageUrl;
-    }
-
-    console.warn("Gemini Image Generation (no face): no image in response", JSON.stringify(data).substring(0, 200));
-    return null;
-  } catch (error) {
-    const isTimeout = error instanceof DOMException && error.name === "TimeoutError";
-    outcome.kind = "transient";
-    outcome.detail = isTimeout ? "timeout" : String((error as Error)?.message || error).slice(0, 120);
-    const errorType = isTimeout ? "illustration_timeout" : "illustration_gemini_noface_error";
-    console.error("Error in Gemini Image Generation (no face):", error);
-    await logError(errorType, `Gemini no-face: ${error?.message || error}`, { model: "google/gemini-3-pro-image-preview" });
+    await logError(errorType, `Gemini Image Gen: ${(error as Error)?.message || error}`, { model: "google/gemini-3-pro-image" });
     return null;
   }
 }
@@ -715,50 +543,27 @@ async function refToBlob(ref: string): Promise<Blob | null> {
 }
 
 async function generateIllustrationBackup(
-  prompt: string,
-  visualAnchor: string,
-  adventureLogic: { outfit: string; background: string; theme: string } | undefined,
-  references: { page1?: string | null; face?: string | null },
+  buildPrompt: (refs: PromptRefs) => string,
+  references: { page1?: string | null; face?: string | null; leo?: boolean },
   storyId: string,
   pageNumber: number,
 ): Promise<string | null> {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) return null;
-    const adventureInstruction = adventureLogic
-      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
-      : "";
-    const refNotes: string[] = [];
+    // Same pictures in the same order as the main service: face, page reference, Leo.
     const blobs: Blob[] = [];
-    if (references.page1) {
-      const b = await refToBlob(references.page1);
-      if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is a finished Pixar 3D page of the SAME main character from this same book — match its face, hair, proportions and EXACT 3D rendering style, but NEVER copy its composition, pose, camera angle or background.`); }
-    }
-    if (references.face) {
-      const b = await refToBlob(references.face);
-      if (b) { blobs.push(b); refNotes.push(`IMAGE ${blobs.length} is the real child's photo — the character's face must be a Pixar 3D rendering of this child.`); }
-    }
-    if (pageHasLeo(prompt)) {
-      const b = await refToBlob(LEO_REF_URL);
-      if (b) { blobs.push(b); refNotes.push(leoRefNote(`IMAGE ${blobs.length}`).replace(/\(IMAGE (\d+) IMAGE\)/, "(IMAGE $1)")); }
-    }
+    const faceBlob = references.face ? await refToBlob(references.face) : null;
+    if (faceBlob) blobs.push(faceBlob);
+    const pageBlob = references.page1 ? await refToBlob(references.page1) : null;
+    if (pageBlob) blobs.push(pageBlob);
+    const leoBlob = references.leo ? await refToBlob(LEO_REF_URL) : null;
+    if (leoBlob) blobs.push(leoBlob);
+    const refs: PromptRefs = { face: !!faceBlob, canon: !!pageBlob, canonPage: 1, leo: !!leoBlob };
+    const leoOrd = referenceOrdinals(refs).leo;
+    const fullPrompt = `Create a NEW full illustration (not an edit of the inputs) for a children's storybook page.${leoOrd ? `\n${leoRefNote(["", "FIRST", "SECOND", "THIRD"][leoOrd])}` : ""}
 
-    const fullPrompt = `Create a NEW full illustration (not an edit of the inputs) for a children's storybook page.
-REFERENCES: ${refNotes.length ? refNotes.join(" ") : "none — create the main character exactly from the CHARACTER LOCK description."}
-
-${visualAnchor}
-
-STYLE: ${PIXAR_STYLE}
-
-${adventureInstruction}
-
-SCENE (THIS IS THE MOST IMPORTANT PART — illustrate THIS specific scene in detail): ${prompt}
-
-${CHARACTER_CONSISTENCY_PROMPT}
-
-NEGATIVE: ${NEGATIVE_PROMPT}
-
-${NO_UI_NEGATIVE}`;
+${buildPrompt(refs)}`;
 
     logImageGenCall({
       storyId, page: pageNumber, api: "lovable-gateway/images-edits", model: BACKUP_IMAGE_MODEL,
@@ -806,21 +611,12 @@ ${NO_UI_NEGATIVE}`;
 // Helper function to generate illustration using Fal.ai Flux Schnell (FALLBACK ONLY)
 // Fast (~2-4s per image) text-to-image model — used when NO child photo is available
 async function generateIllustration(
-  prompt: string,
+  fullPrompt: string,
   childPhoto: string | null,
-  characterProfile: CharacterProfile | null,
-  apiKey: string,
-  storyOutfit: string,
-  visualAnchor: string,
-  adventureLogic?: { outfit: string; background: string; theme: string },
-  topic?: string,
   seed?: number | null,
 ): Promise<string | null> {
   try {
-    // HARD GUARD: when a child photo exists, NEVER fall back to Flux Schnell.
-    // Flux has no face reference and breaks character consistency. The caller must
-    // retry Gemini (face or no-face) instead. This guard makes the policy explicit
-    // even if future call sites forget to gate the fallback themselves.
+    // HARD GUARD: when a child photo exists, NEVER fall back to Flux Schnell (no face reference).
     if (childPhoto) {
       console.warn("⚠️ generateIllustration (Flux Schnell) called while childPhoto exists — refusing fallback to preserve character consistency. Caller should retry Gemini.");
       return null;
@@ -831,22 +627,6 @@ async function generateIllustration(
       console.error("FAL_KEY is not configured, cannot generate illustration");
       return null;
     }
-
-    const finalOutfit = storyOutfit || adventureLogic?.outfit || characterProfile?.clothingDescription || "colorful casual clothes";
-
-    const characterInstruction = characterProfile
-      ? `The main character is a ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, and ${characterProfile.eyeColor} eyes. Wearing ${finalOutfit}. ${characterProfile.gender === "female" ? "This character is a GIRL — feminine or neutral clothing only; NEVER kippah, yarmulke, tzitzit or any male religious symbols." : "This character is a BOY — masculine clothing only (pants/shorts/t-shirt/hoodie/sneakers); ABSOLUTELY NO dress, skirt, tutu, flower crown, hair bow, makeup or any feminine clothing or accessories."} This character must look IDENTICAL in every illustration — same face, hair, outfit, proportions.`
-      : "";
-
-    const adventureInstruction = adventureLogic
-      ? `Setting: ${adventureLogic.background}. Theme: ${adventureLogic.theme}.`
-      : "";
-
-    const stylePrefix = PIXAR_STYLE;
-
-    const negativePrompt = negativePromptFor(characterProfile?.gender);
-
-    const fullPrompt = `${stylePrefix}\n\n${visualAnchor}\n\n${characterInstruction}\n${adventureInstruction}\n\nSCENE: ${prompt}\n\n${CHARACTER_CONSISTENCY_PROMPT}\n\nNEGATIVE: ${negativePrompt}\n\n${NO_UI_NEGATIVE}`;
 
     console.log(`Generating illustration via Fal.ai Flux Schnell (no photo, text-only fallback, seed=${seed ?? "n/a"})...`);
 
@@ -1403,7 +1183,7 @@ async function generateCoverImage(
       signal: AbortSignal.timeout(120_000),
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
+        model: "google/gemini-3-pro-image",
         modalities: ["image", "text"],
         messages: [{ role: "user", content: coverPrompt }],
       }),
@@ -1645,8 +1425,9 @@ serve(async (req) => {
 
       if (existingChild?.avatar_url) {
         childHasSavedAvatar = true;
-        if (!effectivePhoto) {
-          console.warn("🛟 No face picture in request — using the child's saved avatar");
+        // The avatar is the only face reference: the real photo is never sent when an avatar exists.
+        if (!childAvatarUrl) {
+          console.warn(`🛟 ${effectivePhoto ? "Real photo in request replaced by" : "No face picture in request — using"} the child's saved avatar`);
           effectivePhoto = existingChild.avatar_url;
         }
       }
@@ -1807,11 +1588,14 @@ serve(async (req) => {
     let consistentFraming = true;
     let avatarTraitsOn = false;
     let avatarTraits: AvatarTraits | null = null;
+    // New stories whose cover is the avatar copy: page 1 is a normal scene (no cover safe zone).
+    let avatarCoverStory = false;
     // Kippah: the story's own saved choice only (never the child profile); girls never.
     let kippahInfo = { kippah: false, color: "" };
     if (storyId) {
-      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone").eq("id", storyId).maybeSingle();
+      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, cover_url").eq("id", storyId).maybeSingle();
       storyFormatRule = formatRule((so as any)?.illustration_format);
+      avatarCoverStory = isAvatarCoverUrl((so as any)?.cover_url);
       consistentFraming = usesConsistentFraming((so as any)?.created_at);
       avatarTraitsOn = usesAvatarTraits((so as any)?.created_at);
       const sh = normalizeHairShade((so as any)?.hero_hair_shade);
@@ -2008,6 +1792,9 @@ serve(async (req) => {
     const avatarLock = avatarTraitsOn ? avatarWinsRule(avatarTraits, realAge) : "";
     const avatarCheck = avatarTraitsOn && childPhotoSignedUrl
       ? { age: realAge, hair: avatarTraits?.hair || "" } : null;
+    // Redraws of an existing page are always checked against the face reference (any story).
+    const redrawAvatarCheck = avatarCheck ?? (childPhotoSignedUrl
+      ? { age: realAgeText(childProfileAge ?? reqChildAge, ageRange), hair: "" } : null);
 
     const baseStoryOutfit = storyOutfit;
     const baseVisualAnchor = visualAnchor;
@@ -2040,53 +1827,65 @@ serve(async (req) => {
       const pageNarrative = (page.text || "").toString().slice(0, 400);
       const cameraAngle = pickFramingAngle(page.page_number, lastPageNumber, 0, consistentFraming);
       const lighting = LIGHTING_OPTIONS[(page.page_number + 2) % LIGHTING_OPTIONS.length];
-      const charDesc = characterProfile
-        ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes${kippahPhrase}, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
-        : `A child${kippahPhrase}, wearing ${storyOutfit}`;
       const sceneBlock = pageNarrative
         ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
 ${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${basePrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
         : `SCENE (MUST MATCH TEXT EXACTLY): ${basePrompt}`;
-      const genderHeader = buildGenderHeader(childGender, { kippah: kippahInfo.kippah });
-      let illustrationPrompt = `${genderHeader}\n\n${charDesc}. ${sceneBlock}. CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${framingComposition(cameraAngle, consistentFraming)}\n\n${genderSymbolRestriction(childGender)}`;
-      illustrationPrompt += `\n\n${characterLock}\n\n${buildOutfitLock(storyOutfit)}\n\n${SINGLE_HERO_RULE}${storyFormatRule}`;
-      if (page.page_number === 1) {
-        // Page 1 is also cropped into the square library cover card.
-        illustrationPrompt += `\n\nCOMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`;
-      }
-      console.log(`[Page ${page.page_number}] 📝 Direct prompt (${illustrationPrompt.length} chars, text-anchored=${!!pageNarrative})`);
-
-      // Cast members come ONLY from this page's story text (never from the writer's scene
-      // description): their official look is added, every character appears once, and cast
-      // members not named on this page must not be drawn. The hero may share a cast name
-      // (e.g. a child named Sol): that cast card is never added.
-      const castText = String(page.text || "");
-      const castBlock = castReferenceBlock(castText, childName);
-      if (castBlock) {
-        illustrationPrompt += `\n\n${castBlock}`;
-        console.log(`[Page ${page.page_number}] 🎭 Cast on page: ${castInText(castText, childName).join(", ")}`);
-      }
-      illustrationPrompt += `\n\n${pageCastRule(castText, childName)}`;
-
-      // Family member in the reserves/army (dad-in-reserves or any story about it): fixed IDF uniform lock.
-      const militaryRole = militaryRoleForStory(topic, `${page.text || ""}\n${basePrompt}`);
-      const militaryLock = militaryRole ? buildMilitaryLock(militaryRole, String(page.text || ""), illustrationPrompt) : "";
-      if (militaryLock) {
-        illustrationPrompt += `\n\n${militaryLock}`;
-        console.log(`[Page ${page.page_number}] 🪖 Military lock for ${militaryRole}`);
-      }
-
-      // Inject learning topic instruction for letter/number stories
       const isLearningTopic = topic?.startsWith('letter-') || topic?.startsWith('number-');
+      const sceneParts = [
+        sceneBlock,
+        `CAMERA: ${cameraAngle}. LIGHTING: ${lighting}. ${framingComposition(cameraAngle, consistentFraming)}`,
+        effectiveAdventureLogic ? `Setting: ${effectiveAdventureLogic.background}. Theme: ${effectiveAdventureLogic.theme}.` : "",
+      ];
+      if (page.page_number === 1 && !avatarCoverStory) {
+        // Older stories: page 1 is also cropped into the square library cover card.
+        sceneParts.push(`COMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`);
+      }
       if (isLearningTopic) {
         const learningLetter = topic?.startsWith('letter-') ? topic.replace('letter-', '').toUpperCase() : null;
         const learningNumber = topic?.startsWith('number-') ? topic.replace('number-', '') : null;
         const learningTarget = learningLetter ? `Hebrew letter ${learningLetter}` : `number ${learningNumber}`;
-        illustrationPrompt += ` CRITICAL LEARNING ELEMENT: This is an educational story. The ${learningTarget} MUST appear prominently in this illustration — it fills half the image and is fully visible, not cropped. The letter/number is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningTarget}. The ${learningTarget} can appear on a wall, tree, sign, cloud, or magical floating object in the scene. EXCEPTION to the no-text rule: this single ${learningTarget} is the ONLY writing allowed — no other text, words or captions.`;
+        sceneParts.push(`CRITICAL LEARNING ELEMENT: This is an educational story. The ${learningTarget} MUST appear prominently in this illustration — it fills half the image and is fully visible, not cropped. The letter/number is large, clear, bold, 3D golden style, complete and uncut. Wide shot showing both the child and the full ${learningTarget}. The ${learningTarget} can appear on a wall, tree, sign, cloud, or magical floating object in the scene. EXCEPTION to the no-text rule: this single ${learningTarget} is the ONLY writing allowed — no other text, words or captions.`);
         console.log(`[Page ${page.page_number}] 🎓 Injected learning element: ${learningTarget}`);
       }
+
+      // Cast members come ONLY from this page's story text (official look, each once, absent cast not drawn).
+      const castText = String(page.text || "");
+      const castBlock = castReferenceBlock(castText, childName);
+      if (castBlock) console.log(`[Page ${page.page_number}] 🎭 Cast on page: ${castInText(castText, childName).join(", ")}`);
+      const withLeo = castInText(castText, childName).includes("leo");
+      // Family member in the reserves/army: fixed IDF uniform lock.
+      const militaryRole = militaryRoleForStory(topic, `${page.text || ""}\n${basePrompt}`);
+      const militaryLock = militaryRole ? buildMilitaryLock(militaryRole, String(page.text || ""), basePrompt) : "";
+      if (militaryLock) console.log(`[Page ${page.page_number}] 🪖 Military lock for ${militaryRole}`);
+
+      // One shared instruction (face paragraph first, page 1 only for clothes + style, one rules block).
+      const hasFace = !!childPhotoSignedUrl;
+      const hero: PromptHero = {
+        gender: characterProfile?.gender || childGender,
+        ageText: avatarTraitsOn && realAge ? realAge : (Number(reqChildAge) > 0 ? String(reqChildAge) : (characterProfile?.ageDescription || ageRange || "")),
+        outfit: storyOutfit,
+        kippah: kippahInfo.kippah, kippahColor: kippahInfo.color,
+        glasses: !!characterProfile?.glasses,
+        lookText: hasFace ? "" : [
+          heroHair(parentHairEn, characterProfile?.hairDescription || "", false),
+          characterProfile?.skinTone ? `${characterProfile.skinTone} skin` : "",
+          characterProfile?.eyeColor ? `${characterProfile.eyeColor} eyes` : "",
+        ].filter(Boolean).join(", "),
+        traits: hasFace && avatarTraitsOn ? avatarTraits : null,
+      };
+      const scene = sceneParts.filter(Boolean).join("\n\n");
+      const pageRules = [castBlock, pageCastRule(castText, childName), militaryLock];
+      const promptFor = (refs: PromptRefs, fix = "") => buildIllustrationPrompt({ refs, hero, scene, rules: pageRules, formatRule: storyFormatRule, fix });
+      const mainRefs: PromptRefs = { face: hasFace, canon: !!coverReferenceUrl, canonPage: 1, leo: withLeo };
+      const drawMain = (fix: string, outcome?: GenOutcome) => generateIllustrationMain(
+        promptFor(mainRefs, fix), { face: childPhotoSignedUrl, canon: coverReferenceUrl, leo: withLeo }, outcome,
+      );
+      const illustrationPrompt = promptFor(mainRefs);
+      void characterLock;
+      console.log(`[Page ${page.page_number}] 📝 Shared prompt (${illustrationPrompt.length} chars, face share ${faceShare(illustrationPrompt)}%, text-anchored=${!!pageNarrative})`);
 
       let base64Image: string | null = null;
       let modelUsed = "unknown";
@@ -2100,7 +1899,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         storyId,
         page: page.page_number,
         api: "lovable-gateway/chat-completions",
-        model: "google/gemini-3-pro-image-preview",
+        model: "google/gemini-3-pro-image",
         hasFaceRef: !!childPhotoSignedUrl,
         hasPageOneRef: !!coverReferenceUrl,
         seed: null,
@@ -2118,17 +1917,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       for (let attempt = 1; attempt <= MAIN_ATTEMPTS; attempt++) {
         attemptsUsed = attempt;
         const outcome: GenOutcome = {};
-        base64Image = childPhotoSignedUrl
-          ? await generateIllustrationWithFace(
-              illustrationPrompt, childPhotoSignedUrl, characterProfile,
-              storyOutfit, visualAnchor, effectiveAdventureLogic,
-              coverReferenceUrl, outcome,
-            )
-          : await generateIllustrationGeminiNoFace(
-              illustrationPrompt, characterProfile,
-              storyOutfit, visualAnchor, effectiveAdventureLogic,
-              coverReferenceUrl, outcome,
-            );
+        base64Image = await drawMain("", outcome);
         if (base64Image) {
           modelUsed = childPhotoSignedUrl ? "gemini_with_face" : "gemini_no_face";
           if (attempt > 1) console.log(`[Page ${page.page_number}] ✅ Succeeded on retry ${attempt}`);
@@ -2154,8 +1943,8 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         const page1Ref = page.page_number !== 1 ? coverReferenceUrl : null;
         console.log(`[Page ${page.page_number}] Main service failed ${MAIN_ATTEMPTS}x — trying backup with same style/character/references`);
         base64Image = await generateIllustrationBackup(
-          illustrationPrompt, visualAnchor, effectiveAdventureLogic,
-          { page1: page1Ref, face: childPhotoSignedUrl },
+          (refs) => promptFor(refs),
+          { page1: page1Ref, face: childPhotoSignedUrl, leo: withLeo },
           storyId, page.page_number,
         );
         if (base64Image) modelUsed = "backup_gpt_image";
@@ -2163,8 +1952,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         if (!base64Image && !page1Ref && !childPhotoSignedUrl) {
           // No page-1 picture and no photo at all: Flux text-only is the only option.
           base64Image = await generateIllustration(
-            illustrationPrompt, effectivePhoto, characterProfile,
-            LOVABLE_API_KEY, storyOutfit, visualAnchor, effectiveAdventureLogic, topic, fluxSeed
+            promptFor({ face: false, canon: false, leo: false }), effectivePhoto, fluxSeed,
           );
           if (base64Image) modelUsed = "fal_schnell_fallback";
           else fallbackReason = `${fallbackReason}; Flux failed`;
@@ -2217,13 +2005,30 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           const pageRef = page.page_number !== 1 ? coverReferenceUrl : null;
           // First drawing of page 1 (the cover): compared only with the avatar.
           const coverCheck = page.page_number === 1 && !hadExisting;
+          const pageAvatarCheck = hadExisting ? redrawAvatarCheck : avatarCheck;
           const verdict = await checkIdentityMatch(publicPageUrl, pageRef, LOVABLE_API_KEY, isBackup, {
             outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
             eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
-            cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck,
+            cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck: pageAvatarCheck,
           });
-          if (!verdict) {
-            identityCheck = "unavailable";
+          if (!verdict && hadExisting) {
+            // Redraw that could not be checked (asked twice): the previous picture stays.
+            identityCheck = "redraw not checked, old kept";
+            await supabase.from("illustration_logs").insert({
+              story_id: storyId, page_number: page.page_number, model_used: "kept_previous",
+              fallback_reason: "check unavailable after 2 asks", had_face_reference: !!childPhotoSignedUrl,
+              duration_ms: Date.now() - genStart, had_page1_reference: !!coverReferenceUrl, camera_angle: cameraAngle,
+              attempts: attemptsUsed, identity_check: identityCheck, identity_retried: false,
+            });
+            await cleanupCandidates();
+            await notifyIllustrationIssue(supabase, storyId, page.page_number, `בדיקת הסגנון לא הצליחה לרוץ; ${keptOldNote}`, true);
+            return null;
+          } else if (!verdict) {
+            // Mandatory check could not run (asked twice): keep the picture, but never silently —
+            // the story needs attention and the admin is alerted.
+            identityCheck = `${LOOK_KEPT_PREFIX}: check unavailable`;
+            await notifyIllustrationIssue(supabase, storyId, page.page_number,
+              "בדיקת הסגנון והדמות לא הצליחה לרוץ, העמוד נשמר בלי בדיקה – דורש בדיקה ידנית", true);
           } else if (verdict.match) {
             identityCheck = "match";
           } else if (isBackup && pageRef) {
@@ -2253,24 +2058,20 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             ];
             let passed = false;
             // Only eyes/hair tone/style/outfit/emblem differ from page 1: one redraw that names the differences.
+            // A failed 3D Pixar check always gets the full MAX_STYLE_REDRAWS redraws (never look-only).
             const lookOnly = !coverCheck && isLookOnly(verdict.problems);
-            const maxRedraws = lookOnly ? MAX_LOOK_REDRAWS : MAX_IDENTITY_REDRAWS;
+            const maxRedraws = lookOnly ? MAX_LOOK_REDRAWS : Math.max(MAX_IDENTITY_REDRAWS, MAX_STYLE_REDRAWS);
             for (let r = 1; r <= maxRedraws && !passed; r++) {
               const prevTry = tries[tries.length - 1];
-              const redrawPrompt = !coverCheck && isLookOnly(prevTry.problems)
-                ? illustrationPrompt + lookFixInstruction(prevTry.problems, prevTry.reason, characterProfile?.eyeColor, { age: realAge, hair: avatarTraits?.hair })
-                : illustrationPrompt;
-              const retryImage = childPhotoSignedUrl
-                ? await generateIllustrationWithFace(
-                    redrawPrompt, childPhotoSignedUrl, characterProfile,
-                    storyOutfit, visualAnchor, effectiveAdventureLogic,
-                    coverReferenceUrl,
-                  )
-                : await generateIllustrationGeminiNoFace(
-                    redrawPrompt, characterProfile,
-                    storyOutfit, visualAnchor, effectiveAdventureLogic,
-                    coverReferenceUrl,
-                  );
+              const lookList = prevTry.problems.filter((x) => (LOOK_PROBLEMS as readonly string[]).includes(x));
+              const fix = [
+                redrawFixInstruction(prevTry.problems, { age: pageAvatarCheck?.age, hair: avatarTraits?.hair }),
+                !coverCheck && lookList.length && !hasStyleProblem(prevTry.problems)
+                  ? lookFixInstruction(lookList, prevTry.reason, characterProfile?.eyeColor, { age: realAge, hair: avatarTraits?.hair }).trim()
+                  : "",
+              ].filter(Boolean).join("\n");
+              if (hasStyleProblem(prevTry.problems)) console.warn(`[STYLE-CHECK] story=${storyId} page=${page.page_number} not 3D Pixar — redraw ${r} with style fix`);
+              const retryImage = await drawMain(fix);
               if (!retryImage) {
                 console.warn(`[IDENTITY-CHECK] story=${storyId} page=${page.page_number} redraw ${r} failed`);
                 continue;
@@ -2284,12 +2085,13 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               const retryPublic = buildPublicIllustrationUrl(retryUrl);
               const v2 = retryPublic ? await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
                 outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
-            eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
-                cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck,
+                eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
+                cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck: pageAvatarCheck,
               }) : null;
               if (!v2) {
+                // The check could not run even after a second ask: count it as a failed try.
                 identityCheck = `redraw ${r}: check unavailable`;
-                passed = true; // same as today when the check cannot run
+                tries.push({ image: retryImage, problems: ["check unavailable"], reason: "check unavailable" });
               } else if (v2.match) {
                 identityCheck = `match after redraw ${r}`;
                 passed = true;
@@ -2421,49 +2223,37 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
 
         const cameraAngle2 = pickFramingAngle(page.page_number, lastPageNumber, 3, consistentFraming);
         const lighting2 = LIGHTING_OPTIONS[(page.page_number + 5) % LIGHTING_OPTIONS.length];
-        const charDesc2 = characterProfile
-          ? `A ${characterProfile.gender === "female" ? "girl" : "boy"} aged ${characterProfile.ageDescription} with ${characterProfile.hairDescription}, ${characterProfile.skinTone} skin, ${characterProfile.eyeColor} eyes${kippahPhrase}, wearing ${storyOutfit}. ${characterProfile.gender === "female" ? "GIRL — feminine/neutral clothing only, no kippah/tzitzit." : "BOY — masculine clothing only, NO dress, skirt, tutu, flower crown, bow, makeup, or feminine accessories."}`
-          : `A child${kippahPhrase}, wearing ${storyOutfit}`;
         const sceneBlock2 = pageNarrative
           ? `SCENE (MUST MATCH THE STORY TEXT EXACTLY — illustrate precisely what happens in this page, not a different action):
 ${storyTextForPrompt(pageNarrative)}
 VISUAL DESCRIPTION: ${secondPrompt}
 The action, objects, characters, and emotions shown MUST come from the STORY TEXT above. Do not invent a different scene.`
           : `SCENE (MUST MATCH TEXT EXACTLY): ${secondPrompt}`;
-        const secondIllustrationPrompt = `${buildGenderHeader(childGender, { kippah: kippahInfo.kippah })}\n\n${charDesc2}. ${sceneBlock2}. CAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. Pixar 3D CGI style, vibrant colors, fantasy children's book, ${framingComposition(cameraAngle2, consistentFraming)}\n\n${genderSymbolRestriction(childGender)}\n\n${characterLock}${storyFormatRule}`;
+        const scene2 = `${sceneBlock2}\n\nCAMERA: ${cameraAngle2}. LIGHTING: ${lighting2}. ${framingComposition(cameraAngle2, consistentFraming)}`;
+        const prompt2For = (refs: PromptRefs, fix = "") => buildIllustrationPrompt({ refs, hero, scene: scene2, rules: pageRules, formatRule: storyFormatRule, fix });
 
-        let secondStop = false;
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          const o2: GenOutcome = {};
-          secondImage = childPhotoSignedUrl
-            ? await generateIllustrationWithFace(
-                secondIllustrationPrompt, childPhotoSignedUrl, characterProfile,
-                storyOutfit, visualAnchor, effectiveAdventureLogic,
-                coverReferenceUrl, o2,
-              )
-            : await generateIllustrationGeminiNoFace(
-                secondIllustrationPrompt, characterProfile,
-                storyOutfit, visualAnchor, effectiveAdventureLogic,
-                coverReferenceUrl, o2,
-              );
-          if (secondImage) break;
-          if (o2.kind === "refused" || o2.kind === "terminal") { secondStop = true; break; }
-          if (attempt < 3) await new Promise(r => setTimeout(r, [2000, 5000][attempt - 1]));
-        }
-        // Backup with the same references (never Flux after page 1, never after a block).
-        if (!secondImage && !secondStop && (coverReferenceUrl || childPhotoSignedUrl)) {
-          const b = await generateIllustrationBackup(
-            secondIllustrationPrompt, visualAnchor, effectiveAdventureLogic,
-            { page1: coverReferenceUrl, face: childPhotoSignedUrl }, storyId, page.page_number,
-          );
-          if (b && coverReferenceUrl) {
-            const tmpUrl = await uploadImageToStorage(supabase, b, storyId, page.page_number * 10 + 2);
-            const pub = tmpUrl ? buildPublicIllustrationUrl(tmpUrl) : null;
-            const v = pub ? await checkIdentityMatch(pub, coverReferenceUrl, LOVABLE_API_KEY, true) : null;
-            if (v && !v.match) console.warn(`[Page ${page.page_number}] second picture backup mismatched — not saved`);
-            else secondImage = b;
-          } else if (b) {
-            secondImage = b;
+        // Same mandatory 3D Pixar check (and face check) as every picture: up to MAX_STYLE_REDRAWS redraws, else not saved.
+        let secondFix = "";
+        for (let round = 0; round <= MAX_STYLE_REDRAWS && !secondImage; round++) {
+          let candidate: string | null = null;
+          let secondStop = false;
+          for (let attempt = 1; attempt <= (round === 0 ? 3 : 1); attempt++) {
+            const o2: GenOutcome = {};
+            candidate = await generateIllustrationMain(prompt2For(mainRefs, secondFix), { face: childPhotoSignedUrl, canon: coverReferenceUrl, leo: withLeo }, o2);
+            if (candidate) break;
+            if (o2.kind === "refused" || o2.kind === "terminal") { secondStop = true; break; }
+            if (attempt < 3) await new Promise(r => setTimeout(r, [2000, 5000][attempt - 1]));
+          }
+          // Backup with the same references (never Flux after page 1, never after a block).
+          if (!candidate && round === 0 && !secondStop && (coverReferenceUrl || childPhotoSignedUrl)) {
+            candidate = await generateIllustrationBackup((refs) => prompt2For(refs), { page1: coverReferenceUrl, face: childPhotoSignedUrl, leo: withLeo }, storyId, page.page_number);
+          }
+          if (!candidate) break;
+          const v = await checkRedrawPicture(candidate, childPhotoSignedUrl, LOVABLE_API_KEY, { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair, allowText: !!isLearningTopic });
+          if (v && v.problems.length === 0) secondImage = candidate;
+          else {
+            console.warn(`[Page ${page.page_number}] second picture failed check (${v?.reason || "check unavailable"})`);
+            secondFix = redrawFixInstruction(v?.problems || [STYLE_PROBLEM], { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair });
           }
         }
 
