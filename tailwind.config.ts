@@ -64,6 +64,7 @@ export default {
           DEFAULT: "hsl(var(--paper))",
           foreground: "hsl(var(--paper-foreground))",
           muted: "hsl(var(--paper-muted))",
+          gold: "hsl(var(--paper-gold))",
         },
         card: {
           DEFAULT: "hsl(var(--card))",
