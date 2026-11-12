@@ -1,0 +1,2 @@
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS hero_avatar_style boolean NOT NULL DEFAULT false;
+COMMENT ON COLUMN public.stories.hero_avatar_style IS 'Admin opt-in: an older story draws the hero in the avatar''s own 3D render style (new stories get it from AVATAR_STYLE_CUTOFF).';

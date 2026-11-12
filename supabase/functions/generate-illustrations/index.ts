@@ -1610,7 +1610,7 @@ serve(async (req) => {
     // Kippah: the story's own saved choice only (never the child profile); girls never.
     let kippahInfo = { kippah: false, color: "" };
     if (storyId) {
-      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, cover_url").eq("id", storyId).maybeSingle();
+      const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, hero_avatar_style, cover_url").eq("id", storyId).maybeSingle();
       storyFormat = (so as any)?.illustration_format ?? null;
       // Saved hero_traits switch the avatar rules on for any story (older ones only when an admin saved them).
       const lf = likenessFlags((so as any)?.created_at, (so as any)?.hero_traits);
@@ -1620,7 +1620,7 @@ serve(async (req) => {
       avatarCoverStory = isAvatarCoverUrl((so as any)?.cover_url);
       consistentFraming = usesConsistentFraming((so as any)?.created_at);
       avatarTraitsOn = lf.traitsOn;
-      avatarStyleOn = usesAvatarStyle((so as any)?.created_at, !!childAvatarUrl || childHasSavedAvatar);
+      avatarStyleOn = usesAvatarStyle((so as any)?.created_at, !!childAvatarUrl || childHasSavedAvatar, (so as any)?.hero_avatar_style);
       const sh = normalizeHairShade((so as any)?.hero_hair_shade);
       if (sh && (so as any)?.hero_eye_color && (so as any)?.hero_skin_tone) {
         avatarTraits = { hair: sh, eyes: (so as any).hero_eye_color, skin: (so as any).hero_skin_tone };

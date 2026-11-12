@@ -105,7 +105,7 @@ serve(async (req) => {
     // Verify story ownership (or admin)
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, cover_url")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, hero_avatar_style, cover_url")
       .eq("id", storyId)
       .maybeSingle();
 
@@ -364,8 +364,8 @@ serve(async (req) => {
       ? { hair: sh, eyes: (story as any).hero_eye_color, skin: (story as any).hero_skin_tone } : null;
     const heroFeatures: string[] = likenessOn && Array.isArray((story as any).hero_traits) ? (story as any).hero_traits : [];
     const storyFormat: string | null = (story as any).illustration_format ?? null;
-    // New stories only (date-based, never hero_traits): the hero keeps the avatar's own 3D render style.
-    const avatarStyleOn = usesAvatarStyle((story as any).created_at, !!childPhoto && (photoSource === "avatar" || photoSource === "profile_avatar"));
+    // New stories (date) or an older story's own opt-in (hero_avatar_style; never hero_traits): hero in the avatar's 3D render style.
+    const avatarStyleOn = usesAvatarStyle((story as any).created_at, !!childPhoto && (photoSource === "avatar" || photoSource === "profile_avatar"), (story as any).hero_avatar_style);
     const hero: PromptHero = {
       gender: (story as any).child_gender, ageText, outfit, kippah: kp.kippah, kippahColor: kp.color,
       lookText: childPhoto ? "" : hairToEnglish(ap),

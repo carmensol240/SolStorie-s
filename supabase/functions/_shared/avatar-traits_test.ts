@@ -63,3 +63,12 @@ Deno.test("avatar render style: only stories created from the new cutoff, only w
   if (usesAvatarStyle(after, false)) throw new Error("a real photo is never the style source");
   if (usesAvatarStyle(null, true)) throw new Error("no date = unchanged");
 });
+
+Deno.test("avatar render style: an older story turns it on only with its own opt-in, never through hero_traits", async () => {
+  const { usesAvatarStyle } = await import("./avatar-traits.ts");
+  const old = "2026-11-11T16:41:00Z";
+  if (!usesAvatarStyle(old, true, true)) throw new Error("opted-in older story should use avatar style");
+  if (usesAvatarStyle(old, true, false) || usesAvatarStyle(old, true, null)) throw new Error("other older stories must stay unchanged");
+  if (usesAvatarStyle(old, true, ["round face"])) throw new Error("hero_traits must never switch it on");
+  if (usesAvatarStyle(old, false, true)) throw new Error("a real photo is never the style source, even with opt-in");
+});
