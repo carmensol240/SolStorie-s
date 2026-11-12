@@ -1,41 +1,69 @@
-# Two stuck stories after the short-instruction release - findings and fix
+# המראה של הילד יגיע רק מהאווטאר ומהטקסט החופשי
 
-## 1. Exact cause
-Not out of AI credits: the AI service shows no failed calls since 08:55 (no 402/429). Nothing crashed in short-prompt, detectRequestedOutfit or the new clothes check either.
+## 1. השדות שמצאתי ומה יקרה איתם
+| שדה | איפה הוא מופיע היום | מה יקרה |
+|---|---|---|
+| צבע שיער (5 אפשרויות) | יצירת סיפור, מסך 1. מוצג רק כשאין אווטאר ואין תמונה. כשיש אווטאר מופיעה השורה "השיער והפנים נלקחים מהאווטאר" | יוסר. גם השורה תוסר |
+| סגנון שיער | אותו מקום | יוסר |
+| סוג לבוש | יצירת סיפור, מסך 1, מוסתר כבר עכשיו | יוסר מהקוד לגמרי. שורת ההסבר "👕 את הבגדים ניקח מהתמונה..." נשארת |
+| צבע לבוש | אותו מקום, מוסתר | יוסר |
+| שמירה בפרופיל | בחירת ילד שמור ממלאת את הטופס מהערכים השמורים, ושמירה כותבת אותם לפרופיל. זה קורה ב-4 מקומות: טופס יצירת הסיפור, שלב ההרשמה, חלון "הרשמה לפני יצירה" ושמירת הילד בדף יצירת הסיפור | לא קוראים ולא כותבים יותר את השדות האלה. ערכים ישנים נשארים במסד הנתונים |
+| דף "הילדים שלי" ודף הפרופיל | אין בהם שדות מראה | אין שינוי |
 
-The real chain (Ari's story, generate-illustrations log):
+הכיפה (רק לבנים) והטקסט החופשי נשארים בדיוק כמו היום.
 
-```text
-09:21:01 [ref-wait] page-1 illustration ready after 29 check(s)      <- each page first waited ~90 s for page 1
-09:21:22-29 [IMG-GEN-RESULT] page=2..8 success=true                  <- all 7 pages WERE drawn
-09:21:24 [Page 1] second picture failed check (not 3D Pixar ... painterly watercolor)
-09:21:30-39 [IDENTITY-CHECK] page=2..8 MISMATCH - different style, render style
-           (Image B is 3D CGI while Image A is watercolor illustration); redrawing (max 2)
-09:21:44 shutdown                                                    <- the run hit its time limit mid-redraw
-```
+## 2. השרת: מתעלם משדות המראה, גם אם יש ערכים ישנים
+אלה המקומות שקוראים היום את השדות מהפרופיל או מהטופס:
+- **כתיבת הסיפור:** מכניסה לכותב את השורות "לבוש" ו"שיער הדמות", מהטופס או מהפרופיל.
+- **ציור העמודים, ציור מחדש ודף צביעה:** קוראים שיער ובגדים מהפרופיל, ובניהם שורת הבגדים ושורת השיער.
+- **מילוי אוטומטי:** כשצבע השיער בפרופיל ריק, השרת ממלא אותו לפי האווטאר.
 
-Three things combined:
-- **A bug in the new code:** in short mode the drawing correctly leaves out page 1, but the check after drawing still compares each page to page 1 (`pageRef = coverReferenceUrl` in generate-illustrations, line ~2095, instead of the short-mode value, which is empty).
-- **Page 1 came out flat watercolor (2D)** and was kept anyway (the "page 1 is never empty, keep the closest" rule). So every good 3D page "failed" for being different from page 1 and went into redraws.
-- **Time limit:** each page first waits up to 120 s for page 1 (not needed in short mode), then draws (~25 s), then checks, then redraws. The run was stopped mid-redraw. Pictures are saved to the page only after the checks, so nothing was written and no log line appeared. Sol's story looks the same (its logs have already rolled off; pages 1, 5, 7 finished before the limit).
+השינוי חל רק על סיפורים חדשים, מתאריך התחלה חדש. סיפורים קיימים, והציור מחדש שלהם, ממשיכים לעבוד בדיוק כמו היום (כלל 6):
+- הכותב לא יקבל שיער ובגדים מהטופס או מהפרופיל. ההנחיה לכותב תשתנה: בתיאור הסצנה לא כותבים צבע שיער או בגדים לגיבור, כי הם מגיעים מהאווטאר. ההנחיה הזו כבר קיימת לבגדים, ועכשיו תחול גם על השיער.
+- מתיאור הסצנה יימחקו לפני הציור צבע שיער ותסרוקת של הגיבור, כמו שכבר נמחקים הבגדים.
+- בגדים יגיעו רק מבקשה בטקסט החופשי (story_outfit) או מהאווטאר. שיער יגיע רק מהאווטאר.
+- המילוי האוטומטי של צבע השיער בפרופיל יופסק.
+- דף הצביעה של סיפור חדש ייקח בגדים רק מ-story_outfit, ולא מהפרופיל.
+- התוצאה אצל ארי: הערכים "בלונדיני" ו"גיבור על" אדום נשארים שמורים, אבל אף סיפור חדש לא ישתמש בהם.
 
-## 2. Fix (code only, does not lengthen the short instruction - locked rule 5 stays)
-In `supabase/functions/generate-illustrations/index.ts`:
-- In short mode, the check after drawing is against the **avatar** only (style, face, clothes, text, flags, shape) - never against page 1.
-- In short mode, pages do not wait for page 1 (no `waitForPageOneIllustration`), since page 1 is not sent.
-- Safety net for time: if the run is close to its time limit, save the best picture that passed the 3D check instead of starting another redraw (alert the admin if it is a look failure only). A 2D picture is never saved.
-- Make the first drawing of page 1 in short mode strict on 3D: a watercolor/2D picture is not kept as "closest" while a 3D try exists.
+## 3. מילות סגנון בתיאור הסצנה
+לפני כל ציור יימחקו מתיאור הסצנה מילות סגנון שהכותב הוסיף, כמו watercolor, 2D, flat, cartoon, comic, sketch, pencil, painterly, anime, illustration style ו-storybook style.
+- זה יחול על כל ציור, גם בסיפורים ישנים, כי כלל 4 קובע שהכול ב-3D.
+- המחיקה לא מוסיפה שום דבר להוראה, ולכן ההוראה הקצרה לא מתארכת.
+- גם ההנחיה לכותב תקבל שורה קצרה: "לא לכתוב סגנון ציור".
 
-Tests (`short-prompt_test.ts` / new small test): short mode -> check picture = avatar, no page-1 reference, no page-1 wait. No locked test is weakened. Update the AGENTS.md rule.
+## 4. מקרה קצה: ילד בלי אווטאר
+**מה קורה היום:**
+- סיפור לא נוצר בכלל בלי תמונה או אווטאר. השרת מסרב לפני כל חיוב ("צריך להעלות תמונה...").
+- ילד עם תמונה אמיתית בלי אווטאר כן אפשרי, למשל כשיצירת האווטאר נכשלה. אז מציירים לפי התמונה.
 
-## 3. Completing the two stories (no charge, no redraw of finished pages)
-After the fix is live, an admin run of generate-illustrations per missing page only (single page, `firstDrawing:true`, no charge):
-- Ari (1258dee1): pages 2-8.
-- Sol (c4532152): pages 2, 3, 4, 6, 8, 9, 10, 11, 12 (all pages with no picture; pages 1, 5, 7 stay).
-- Then the story moves to ready by itself.
+**מספרים מהמסד היום:**
+- 59 פרופילים בסך הכול.
+- 20 בלי אווטאר. מתוכם 5 עם תמונה ו-15 בלי תמונה ובלי אווטאר. על ה-15 אי אפשר ליצור היום סיפור.
+- 14 פרופילים עם ערכי מראה ישנים.
 
-**Needs your decision:** Ari's page 1 is a flat watercolor picture, which breaks locked rule 4 (always 3D). Redrawing it changes a customer story, so I will only do it if you approve. I also need to look at Sol's page 1 (not checked yet).
+**אחרי השינוי:** ילד שיש לו רק תמונה יצויר לפי התמונה בלבד. בלי שדות מהטופס אין מקור למראה שיכול "להתנגש" בתמונה.
 
-## 4. Cost
-- Build: about 2-4 credits.
-- Completion: about 16 drawings + checks, roughly $0.8-1.6 in AI usage (plus 1 more if you approve Ari's page 1).
+**ההצעות שלי (לבחירתך, לא אחליט לבד):**
+- **א. מומלץ:** לחייב אווטאר. בלי אווטאר אין סיפור. אם יצירת האווטאר נכשלת, מנסים שוב, ואם לא הצליח מציגים הודעה ומספר וואטסאפ. כך כל ילד מצויר בדיוק מהאווטאר שלו, וגם הכריכה תמיד האווטאר (כלל 1).
+- **ב.** לאפשר תמונה בלי אווטאר כמו היום, ולצייר רק לפיה. החיסרון: אין לסיפור כריכת אווטאר, והתמונה האמיתית אף פעם לא מתפרסמת.
+- **ג.** בלי תמונה בכלל: לא מאפשרים, כמו היום. אף פעם לא ממציאים מראה.
+
+## 5. טסטים ותיעוד
+- טסטים חדשים: כותב הסיפור לא מקבל שיער ובגדים מהפרופיל (ארי: בלונדיני וגיבור על לא נכנסים); צבע שיער ותסרוקת נמחקים מהסצנה; מילות סגנון נמחקות ותיאור נקי נשאר כמו שהוא; ההוראה הקצרה לא מתארכת; סיפור ישן ממשיך לקבל את הערכים כמו היום; הטופס לא מציג את השדות ולא שומר אותם.
+- את הטסט הקיים של המראה, וטסט הפרופיל החדש שבודק שליחת שדות, אעדכן להתנהגות החדשה. טסטי הכללים הנעולים לא ייגעו.
+- אעדכן את AGENTS.md ואת הזיכרון.
+
+## קבצים
+- **מסכים:** src/components/wizard/ChildInfoStep.tsx, src/pages/CreateStory.tsx, src/components/wizard/GeneratingStep.tsx, src/components/wizard/AuthStep.tsx, src/components/story/SignupBeforeGenerateModal.tsx, src/lib/create-draft.ts
+- **שרת:** supabase/functions/generate-story/index.ts, generate-illustrations/index.ts, retry-illustration/index.ts, generate-coloring-page/index.ts, _shared/appearance.ts (מתג "בלי שדות טופס" לפי התאריך), _shared/short-prompt.ts (מחיקת שיער ומילות סגנון), _shared/avatar-traits.ts (הפסקת המילוי האוטומטי)
+- **טסטים:** _shared/short-prompt_test.ts, טסט appearance בשרת, src/__tests__/appearance.test.ts, src/__tests__/new-profile-race.test.tsx
+- **תיעוד:** AGENTS.md (בשורש ושל הפונקציות) וזיכרון הפרויקט
+
+## Publish
+- שינויי השרת נכנסים לתוקף ברגע שהפונקציות מתפרסמות, וזה קורה בבנייה.
+- שינויי המסכים מופיעים ללקוחות רק אחרי Publish.
+
+## עלות
+- בנייה: בערך 4–7 קרדיטים.
+- אין ציורים ואין עלות AI, ואני לא יוצר טעימת בדיקה.
