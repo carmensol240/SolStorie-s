@@ -13,7 +13,7 @@ Today every story picture uses **gemini-3-pro-image** (Pro). Prices per picture 
 | gemini-2.5-flash-image | original "Nano Banana" | about 25% |
 | gemini-3.1-flash-lite-image | lightest | about 25% |
 
-The Gemini app's Flash today is most likely gemini-3.1-flash-image, so the experiment uses it. If you want, I can also add gemini-2.5-flash-image as a 5th method (+4 pictures).
+The Gemini app's Flash today is most likely gemini-3.1-flash-image. The experiment also tests gemini-2.5-flash-image (original Nano Banana) with the short instruction.
 
 ## 2. The short instruction
 
@@ -32,10 +32,10 @@ Everything else (long gang descriptions, camera rules, distinguishing features, 
 ## 3. Experiment (test account only, nothing saved to any story)
 
 - Uriel pages 1 and 3 (avatar read only), Noam 2 pages.
-- 4 methods per page: (1) current, (2) Pro + short, (3) Flash + current, (4) Flash + short.
-- 16 pictures, one try each, no redraws, so we compare the raw likeness. The checks still run and report their result in the table.
+- 5 methods per page: (1) current, (2) Pro + short, (3) Flash 3.1 + current, (4) Flash 3.1 + short, (5) Flash 2.5 + short.
+- 20 pictures, one try each, no redraws, so we compare the raw likeness. The checks still run and report their result in the table.
 - Side-by-side table with the avatar, saved to Files.
-- Then delete the test tool and all 16 pictures.
+- Then delete the test tool and all 20 pictures; only the comparison table stays. Answer: which method looks closest to the avatar, judged from the pictures, plus the cost.
 
 ## 4. Checks after the drawing — they all stay
 
@@ -64,7 +64,7 @@ The 3D/style check, face-vs-avatar check, shape (size measured), text and flag c
 | Flash + current | ~$0.5–1.0 |
 | Flash + short | ~$0.45–0.9 |
 
-- Experiment: 16 pictures + checks, about $0.50–1.00.
+- Experiment: 20 pictures + checks, about $0.50–1.00.
 - Building the experiment tool: about 2–3 credits. Building the final change: about 3–5 credits.
 
 ## Technical details
