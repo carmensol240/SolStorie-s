@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { logError } from "../_shared/log-error.ts";
 import { isLegacyOpenStory } from "../_shared/legacy-access.ts";
-import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
+import { mergeAppearance, formAppearanceFor, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { COLORING_FAILED_MESSAGE, COLORING_RETRY_INSTRUCTION, COLORING_NO_TEXT_RULE, produceCleanColoringPage } from "../_shared/coloring-pipeline.ts";
 
@@ -125,7 +125,7 @@ serve(async (req) => {
       let q = supabase.from("children").select("age, hair_color, hair_style, clothing_type, clothing_color").eq("user_id", userId);
       q = (storyOwner as any).child_id ? q.eq("id", (storyOwner as any).child_id) : q.eq("name", (storyOwner as any).child_name);
       const { data: ch } = await q.limit(1).maybeSingle();
-      const ap = mergeAppearance(null, { hairColor: ch?.hair_color, hairStyle: ch?.hair_style, clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color });
+      const ap = mergeAppearance(null, formAppearanceFor((storyOwner as any).created_at, { hairColor: ch?.hair_color, hairStyle: ch?.hair_style, clothingType: ch?.clothing_type, clothingColor: ch?.clothing_color }));
       const hair = hairToEnglish(ap);
       const outfit = clothingToEnglish(ap, (storyOwner as any).child_gender) || (storyOwner as any).story_outfit || "";
       const kp = kippahForStory(storyOwner as any);

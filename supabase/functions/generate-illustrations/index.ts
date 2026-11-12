@@ -3,16 +3,16 @@ import { pickFramingAngle, framingComposition, usesConsistentFraming } from "../
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { buildMilitaryLock, militaryRoleForStory } from "../_shared/military-family.ts";
 import { castInText, castReferenceBlock, pageCastRule } from "../_shared/story-cast-pages.ts";
-import { mergeAppearance, hairToEnglish, heroHair, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, kippahForStory, type Appearance } from "../_shared/appearance.ts";
+import { mergeAppearance, formAppearanceFor, hairToEnglish, heroHair, clothingToEnglish, resolvePageOutfit, buildCharacterLock, translateOutfitWords, pickDefaultOutfit, kippahForStory, type Appearance } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { isLookOnly, lookFixInstruction, lookProblemsFrom, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
-import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, AVATAR_LIKENESS_QUESTION, likenessFlags, usesAvatarStyle, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, type AvatarTraits } from "../_shared/avatar-traits.ts";
+import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, AVATAR_LIKENESS_QUESTION, likenessFlags, usesAvatarStyle, avatarWinsRule, normalizeHairShade, parseAvatarTraits, realAgeText, type AvatarTraits } from "../_shared/avatar-traits.ts";
 import { coverProblemsFrom, keptTryAfterFailedRedraws } from "../_shared/cover-check.ts";
 import { buildIllustrationPrompt, referenceContent, referenceOrdinals, faceShare, type PromptHero, type PromptRefs } from "../_shared/illustration-prompt.ts";
-import { usesShortPrompt, buildShortIllustrationPrompt, shortReferenceContent, clothesCheckQuestions, clothesProblemsFrom, type ClothesCheck } from "../_shared/short-prompt.ts";
+import { usesShortPrompt, buildShortIllustrationPrompt, shortReferenceContent, clothesCheckQuestions, clothesProblemsFrom, CLOTHES_JSON_KEYS, type ClothesCheck } from "../_shared/short-prompt.ts";
 import { PIXAR_3D_QUESTION, styleQuestions, avatarStyleQuestions, STYLE_PROBLEM, hasStyleProblem, redrawFixInstruction, styleProblemsFrom, checkRedrawPicture, shapeProblems, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
 import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
 import { hasTimeFor, pageCheckReference, waitsForPageOne } from "../_shared/page-run.ts";
@@ -210,7 +210,7 @@ async function checkIdentityMatchOnce(
         (avatarStyle ? avatarStyleQuestions(img, "the reference") : "") +
         (clothes ? clothesCheckQuestions(img, "the reference (LAST image)", clothes) : "") : "") +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
-      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,"avatar_style_match":bool,"avatar_blend":bool,"hero_clothes_ok":bool,"gang_clothes_ok":bool,"foreign_flag":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,"avatar_style_match":bool,"avatar_blend":bool,"hero_clothes_ok":bool,"gang_clothes_ok":bool,"foreign_flag":bool,"hero_hair_ok":bool,"extra_child":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
@@ -303,7 +303,7 @@ async function checkCoverAgainstAvatarOnce(
         ? "- has_text: are there clearly readable written letters or words drawn in the picture, in any language (English/Latin letters included)? Toy blocks, logos, emblems, patterns are NOT text.\n" +
           `Now look at the clothes and objects of Image B (clothes do count for these):\n${clothesCheckQuestions("Image B", "Image A", clothes)}`
         : "- has_text: are there clearly readable written letters or words drawn in the picture? Toy blocks, logos, emblems, patterns are NOT text.\n") +
-      `Answer strict JSON only: {"same_child":bool,"hair_tone_match":bool,"eye_color_match":bool,"render_style_match":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,${clothes ? '"hero_clothes_ok":bool,"gang_clothes_ok":bool,"foreign_flag":bool,' : ""}"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}`;
+      `Answer strict JSON only: {"same_child":bool,"hair_tone_match":bool,"eye_color_match":bool,"render_style_match":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,${clothes ? CLOTHES_JSON_KEYS : ""}"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}`;
     const content: any[] = [{ type: "text", text }];
     if (avatarUrl) content.push({ type: "image_url", image_url: { url: avatarUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
@@ -1436,7 +1436,7 @@ serve(async (req) => {
     // The story's own owner/child/face picture — never the caller (an admin redraw runs
     // under the admin's account, which has no children of its own).
     const { data: storyFaceRow } = storyId
-      ? await supabase.from("stories").select("user_id, child_id, child_name, child_photo_path, child_gender").eq("id", storyId).maybeSingle()
+      ? await supabase.from("stories").select("user_id, child_id, child_name, child_photo_path, child_gender, created_at").eq("id", storyId).maybeSingle()
       : { data: null };
     // The story's gender (chosen in the form for THIS story) wins everywhere — first drawing and redraws.
     const childGender: "male" | "female" = normalizeGender((storyFaceRow as any)?.child_gender) || normalizeGender(reqChildGender) || "male";
@@ -1463,11 +1463,16 @@ serve(async (req) => {
           effectivePhoto = existingChild.avatar_url;
         }
       }
-      parentHairColor = (existingChild?.hair_color || "").trim();
+      // Stories from APPEARANCE_FROM_AVATAR_CUTOFF ignore the saved hair/clothing fields (looks = avatar + free text).
+      const savedAp = formAppearanceFor((storyFaceRow as any)?.created_at, {
+        hairColor: existingChild?.hair_color, hairStyle: existingChild?.hair_style,
+        clothingType: existingChild?.clothing_type, clothingColor: existingChild?.clothing_color,
+      });
+      parentHairColor = String(savedAp.hairColor || "").trim();
       childProfileAge = Number.isFinite(Number((existingChild as any)?.age)) ? Number((existingChild as any).age) : null;
-      parentHairStyle = (existingChild?.hair_style || "").trim();
-      parentClothingType = (existingChild?.clothing_type || "").trim();
-      parentClothingColor = (existingChild?.clothing_color || "").trim();
+      parentHairStyle = String(savedAp.hairStyle || "").trim();
+      parentClothingType = String(savedAp.clothingType || "").trim();
+      parentClothingColor = String(savedAp.clothingColor || "").trim();
 
       if (existingChild?.avatar_description) {
         try {
@@ -1503,7 +1508,7 @@ serve(async (req) => {
     }
 
     // Form values (sent with the request) win over the saved profile; each field independent.
-    const mergedAppearance = mergeAppearance(reqAppearance, {
+    const mergedAppearance = mergeAppearance(formAppearanceFor(storyId ? (storyFaceRow as any)?.created_at : null, reqAppearance), {
       hairColor: parentHairColor, hairStyle: parentHairStyle,
       clothingType: parentClothingType, clothingColor: parentClothingColor,
     });
@@ -1834,11 +1839,7 @@ serve(async (req) => {
           if (Array.isArray((saved as any)?.hero_traits)) savedFeatures = (saved as any).hero_traits;
           const sh = normalizeHairShade((saved as any)?.hero_hair_shade);
           avatarTraits = sh ? { hair: sh, eyes: (saved as any).hero_eye_color || t.eyes, skin: (saved as any).hero_skin_tone || t.skin } : t;
-          // Empty profile hair color gets the avatar shade, so the next story uses it too.
-          if (ownerId && savedChildFilter && !parentHairColor) {
-            await supabase.from("children").update({ hair_color: formHairFromShade(avatarTraits.hair) })
-              .eq("user_id", ownerId).eq(savedChildFilter.col, savedChildFilter.val).is("hair_color", null);
-          }
+          // The profile hair field is never filled from the avatar any more (looks = avatar + free text).
         } else console.warn("[AVATAR-TRAITS] analysis unavailable — using saved profile");
       } catch (e) { console.warn("[AVATAR-TRAITS] failed:", (e as Error)?.message); }
     }
@@ -1975,7 +1976,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       const drawMain = (fix: string, outcome?: GenOutcome) => generateIllustrationMain(
         promptFor(mainRefs, fix), { face: childPhotoSignedUrl, canon: pageCanonUrl, leo: withLeo, short: pageShort }, outcome,
       );
-      const clothesCheck: ClothesCheck | null = pageShort ? { outfit: requestedOutfit, cast: pageCast, pageText: castText } : null;
+      const clothesCheck: ClothesCheck | null = pageShort ? { outfit: requestedOutfit, cast: pageCast, pageText: castText, scene: String(page.illustration_prompt || "") } : null;
       const illustrationPrompt = promptFor(mainRefs);
       void characterLock;
       console.log(`[Page ${page.page_number}] 📝 Shared prompt (${illustrationPrompt.length} chars, face share ${faceShare(illustrationPrompt)}%, text-anchored=${!!pageNarrative})`);

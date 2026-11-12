@@ -4,6 +4,7 @@
 // redraws it is never left empty: the closest picture is kept and the story needs attention.
 import { isLookOnly, LOOK_KEPT_PREFIX } from "./look-check.ts";
 import { closestTryIndex, hasStyleProblem, styleProblemsFrom } from "./style-check.ts";
+import { hasHardProblem } from "./short-prompt.ts";
 
 /** identity_check prefix of a cover kept after failed redraws; starts with LOOK_KEPT_PREFIX so the story is needs_attention. */
 export const COVER_KEPT_PREFIX = `${LOOK_KEPT_PREFIX} (cover vs avatar)`;
@@ -36,6 +37,9 @@ export function keptTryAfterFailedRedraws<T extends CheckedTry>(
   pageNumber: number, hadExisting: boolean, tries: T[],
 ): { best: T; identityCheck: string; cover: boolean } | null {
   if (hadExisting || tries.length === 0) return null;
+  // Wrong hair vs the avatar or an extra child: never kept, not even as the closest try (page 1 included).
+  tries = tries.filter((t) => !hasHardProblem(t.problems));
+  if (tries.length === 0) return null;
   const closest = (list: T[]) => list.reduce((a, b) => (b.problems.length < a.problems.length ? b : a));
   if (pageNumber === 1) {
     // Closest try, preferring one that passed the 3D Pixar check.

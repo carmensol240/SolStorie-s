@@ -1,3 +1,4 @@
+import { AVATAR_FAILED_MESSAGE, AVATAR_HELP_WHATSAPP } from "@/lib/photo-optional";
 import { normalizeGender } from "../../../supabase/functions/_shared/gender";
 import { useRef, useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,29 +55,6 @@ const photoTips: PhotoTip[] = [
 ];
 
 // Helper to convert age number to age range
-const CLOTHING_TYPES = [
-  { value: "בגדי יומיום", emoji: "👕" },
-  { value: "גיבור/ת על", emoji: "🦸" },
-  { value: "שמלה", emoji: "👗" },
-  { value: "בגד ים", emoji: "🩳" },
-  { value: "פיג'מה", emoji: "🌙" },
-  { value: "בגדי חורף", emoji: "❄️" },
-];
-
-// Clothing type/color questions are hidden (kippah stays); the profile columns are kept.
-const SHOW_CLOTHING_QUESTIONS = false;
-const CLOTHING_COLORS = ["כחול", "ורוד", "אדום", "ירוק", "סגול", "צהוב"];
-
-const HAIR_COLORS = ["חום", "שחור", "בלונדיני", "ג'ינג'י", "חום בהיר"];
-
-const HAIR_STYLES = [
-  { value: "קוקיות", emoji: "🎀" },
-  { value: "צמה", emoji: "👱‍♀️" },
-  { value: "שיער פזור", emoji: "💇‍♀️" },
-  { value: "סרט/קליפס", emoji: "🎗️" },
-  { value: "קצר", emoji: "✂️" },
-];
-
 const ageToRange = (age: number): "0-2" | "2-4" | "5-7" | "8-10" => {
   if (age <= 2) return "0-2";
   if (age <= 4) return "2-4";
@@ -215,7 +193,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         // Fetch from database for authenticated users
         const { data, error } = await supabase
           .from("children")
-          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details, clothing_type, clothing_color, hair_color, hair_style, kippah")
+          .select("id, name, age, gender, photo_url, avatar_url, personality_traits, fixed_details, kippah")
           .eq("user_id", user.id);
         
         if (!error && data && data.length > 0) {
@@ -234,11 +212,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
               childAvatarUrl: firstChild.avatar_url,
               personalityTraits: firstChild.personality_traits || "",
               fixedDetails: (firstChild as any).fixed_details || "",
-              clothingType: (firstChild as any).clothing_type || "",
               kippah: !!(firstChild as any).kippah,
-              clothingColor: (firstChild as any).clothing_color || "",
-              hairColor: (firstChild as any).hair_color || "",
-              hairStyle: (firstChild as any).hair_style || "",
             });
             if (firstChild.personality_traits) {
               setShowPersonalityField(true);
@@ -266,11 +240,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
               childAvatarUrl: firstChild.avatar_url,
               personalityTraits: firstChild.personality_traits || "",
               fixedDetails: firstChild.fixed_details || "",
-              clothingType: firstChild.clothing_type || "",
               kippah: !!(firstChild as any).kippah,
-              clothingColor: firstChild.clothing_color || "",
-              hairColor: firstChild.hair_color || "",
-              hairStyle: firstChild.hair_style || "",
             });
             if (firstChild.personality_traits) {
               setShowPersonalityField(true);
@@ -335,6 +305,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
     }
   };
 
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const generateAvatarInline = async (photo?: string) => {
     const photoToUse = photo || formData.childPhoto;
     if (!photoToUse || isGeneratingAvatar) return;
@@ -345,12 +316,22 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
     }
     
     setIsGeneratingAvatar(true);
+    setAvatarFailed(false);
     try {
-      const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
-        body: { childPhoto: await avatarPhotoInput(photoToUse) }
-      });
-      if (error) throw new Error(error.message || 'שגיאה בשרת');
-      if (data?.error) throw new Error(data.message || data.error);
+      // The avatar is required for a story: one automatic second try before showing the help message.
+      const askOnce = async () => {
+        const { data, error } = await supabase.functions.invoke('preview-child-avatar', {
+          body: { childPhoto: await avatarPhotoInput(photoToUse) }
+        });
+        if (error) throw new Error(error.message || 'שגיאה בשרת');
+        if (data?.error) throw new Error(data.message || data.error);
+        return data;
+      };
+      let data: any;
+      try { data = await askOnce(); } catch (firstErr) {
+        console.warn('Avatar generation failed once, trying again:', firstErr);
+        data = await askOnce();
+      }
       if (data?.previewUrl) {
         updateFormData({ childAvatarUrl: data.previewUrl });
         const newCount = avatarRegenerationCount + 1;
@@ -371,7 +352,8 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
       }
     } catch (err) {
       console.error('Avatar generation error:', err);
-      toast.error(err instanceof Error ? err.message : 'שגיאה ביצירת הדמות');
+      setAvatarFailed(true);
+      toast.error(AVATAR_FAILED_MESSAGE);
     } finally {
       setIsGeneratingAvatar(false);
     }
@@ -406,11 +388,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
       childAvatarUrl: child.avatar_url,
       personalityTraits: child.personality_traits || "",
       fixedDetails: (child as any).fixed_details || "",
-      clothingType: (child as any).clothing_type || "",
       kippah: !!(child as any).kippah,
-      clothingColor: (child as any).clothing_color || "",
-      hairColor: (child as any).hair_color || "",
-      hairStyle: (child as any).hair_style || "",
     });
     
     // Load avatar regeneration count
@@ -451,11 +429,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
           avatar_url: formData.childAvatarUrl,
           personality_traits: formData.personalityTraits || null,
           fixed_details: formData.fixedDetails || null,
-          clothing_type: formData.clothingType || null,
           kippah: formData.childGender === "male" && !!formData.kippah,
-          clothing_color: formData.clothingColor || null,
-          hair_color: formData.hairColor || null,
-          hair_style: formData.hairStyle || null,
         };
 
         // When creating a new profile, never match against existing children by name.
@@ -484,11 +458,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
               avatar_url: formData.childAvatarUrl,
               personality_traits: formData.personalityTraits || null,
               fixed_details: formData.fixedDetails || null,
-              clothing_type: formData.clothingType || null,
           kippah: formData.childGender === "male" && !!formData.kippah,
-              clothing_color: formData.clothingColor || null,
-              hair_color: formData.hairColor || null,
-              hair_style: formData.hairStyle || null,
             })
             .eq("id", existingChild.id);
 
@@ -605,10 +575,6 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         personalityTraits: "",
         className: "",
         fixedDetails: "",
-        clothingType: "",
-        clothingColor: "",
-        hairColor: "",
-        hairStyle: "",
       });
       
       toast.success(`הפרופיל של ${currentChild.name} נמחק בהצלחה`);
@@ -675,10 +641,6 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
                 personalityTraits: "",
                 className: "",
                 fixedDetails: "",
-                clothingType: "",
-                clothingColor: "",
-                hairColor: "",
-                hairStyle: "",
               });
               // Block any in-flight profile load from filling this clean form.
               skipAutoLoadRef.current = true;
@@ -763,7 +725,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
           <button
             type="button"
             aria-pressed={formData.childGender === "male"}
-            onClick={() => updateFormData(formData.clothingType === "שמלה" ? { childGender: "male", clothingType: "בגדי יומיום" } : { childGender: "male" })}
+            onClick={() => updateFormData({ childGender: "male" })}
             className={cn(
               "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1.5",
               formData.childGender === "male"
@@ -845,37 +807,12 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         </div>
       </div>
 
-      {/* Clothing hint — the clothing type/color questions are hidden: new stories dress the
-          child like the avatar (or as the parent asks in the free text). Saved profile values are kept. */}
+      {/* Looks come only from the avatar and the free text — no hair/clothing questions (old profile values are kept, unused). */}
       <p className="text-sm text-muted-foreground">
         👕 את הבגדים ניקח{formData.childName?.trim() ? ` מהתמונה של ${formData.childName.trim()}` : " מהתמונה"}.
         רוצים תחפושת או בגדים מיוחדים? כתבו את זה בתיבה של הסיפור בשלב הבא.
       </p>
 
-      {SHOW_CLOTHING_QUESTIONS && (
-      <div className="space-y-1">
-        <Label id="child-clothing-label" className="text-sm font-medium">סוג לבוש</Label>
-        <div role="group" aria-labelledby="child-clothing-label" className="grid grid-cols-3 gap-2">
-          {CLOTHING_TYPES.filter((item) => item.value !== "שמלה" || formData.childGender === "female").map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              aria-pressed={formData.clothingType === item.value}
-              onClick={() => updateFormData({ clothingType: item.value })}
-              className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1",
-                formData.clothingType === item.value
-                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              <span className="text-base">{item.emoji}</span>
-              <span className="text-sm font-bold">{item.value}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-      )}
 
       {formData.childGender === "male" && (
         <div className="space-y-1">
@@ -894,29 +831,6 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         </div>
       )}
 
-      {SHOW_CLOTHING_QUESTIONS && (
-      <div className="space-y-1">
-        <Label id="child-color-label" className="text-sm font-medium">צבע עיקרי</Label>
-        <div role="group" aria-labelledby="child-color-label" className="grid grid-cols-3 gap-2">
-          {CLOTHING_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              aria-pressed={formData.clothingColor === color}
-              onClick={() => updateFormData({ clothingColor: color })}
-              className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center",
-                formData.clothingColor === color
-                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              <span className="text-sm font-bold">{color}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-      )}
       </>
       )}
 
@@ -1109,6 +1023,12 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
                   </div>
                 </div>
               )}
+              {avatarFailed && !formData.childAvatarUrl && !isGeneratingAvatar && (
+                <p role="alert" className="mt-2 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {AVATAR_FAILED_MESSAGE}{" "}
+                  <a href={AVATAR_HELP_WHATSAPP} target="_blank" rel="noopener noreferrer" className="font-bold underline">לוואטסאפ</a>
+                </p>
+              )}
               <div className="flex gap-3 mt-2">
                 {!formData.childAvatarUrl && formData.childPhoto && !isGeneratingAvatar && (
                   <Button
@@ -1224,59 +1144,6 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         )}
       </div>
 
-      {/* Hair fields only without a face picture; with one, face and hair come from it. Saved values are kept. */}
-      {formData.childAvatarUrl ? (
-        <p className="text-sm text-muted-foreground text-center">השיער והפנים נלקחים מהאוואטר</p>
-      ) : !formData.childPhoto ? (
-      <>
-      {/* Hair color · Hair style */}
-      <div className="space-y-1">
-        <Label id="child-hair-color-label" className="text-sm font-medium">צבע שיער</Label>
-        <div role="group" aria-labelledby="child-hair-color-label" className="grid grid-cols-3 gap-2">
-          {HAIR_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              aria-pressed={formData.hairColor === color}
-              onClick={() => updateFormData({ hairColor: color })}
-              className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center",
-                formData.hairColor === color
-                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              <span className="text-sm font-bold">{color}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <Label id="child-hairstyle-label" className="text-sm font-medium">תסרוקת</Label>
-        <div role="group" aria-labelledby="child-hairstyle-label" className="grid grid-cols-3 gap-2">
-          {HAIR_STYLES.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              aria-pressed={formData.hairStyle === item.value}
-              onClick={() => updateFormData({ hairStyle: item.value })}
-              className={cn(
-                "p-1.5 rounded-lg border-2 transition-all text-center flex items-center justify-center gap-1",
-                formData.hairStyle === item.value
-                  ? "border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100"
-                  : "border-border bg-card hover:border-purple-300"
-              )}
-            >
-              <span className="text-base">{item.emoji}</span>
-              <span className="text-sm font-bold">{item.value}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      </>
-      ) : null}
 
       {/* Save Button - clearly visible above the fixed Continue button */}
       <div className="pt-2 pb-4">

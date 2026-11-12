@@ -66,11 +66,7 @@ const cleanForm: StoryFormData = {
   personalityTraits: "",
   className: "",
   fixedDetails: "",
-  clothingType: "",
-  clothingColor: "",
   kippah: false,
-  hairColor: "",
-  hairStyle: "",
 };
 
 describe("new profile race", () => {
@@ -105,8 +101,6 @@ describe("new profile race", () => {
     );
     expect(clearCall).toBeDefined();
     expect(clearCall!.photoConsent).toBe(false);
-    expect(clearCall!.clothingType).toBe("");
-    expect(clearCall!.hairColor).toBe("");
 
     // Now the saved profiles arrive late.
     await act(async () => {
@@ -124,5 +118,23 @@ describe("new profile race", () => {
     expect(leaked).toBeUndefined();
     expect(selected).not.toContain(SAVED_CHILD.id);
     expect(selected[selected.length - 1]).toBeNull();
+  });
+
+  it("loading a saved profile never brings back old hair/clothing choices", async () => {
+    const updates: Partial<StoryFormData>[] = [];
+    render(<ChildInfoStep formData={cleanForm} updateFormData={(u) => updates.push(u)} />);
+    await screen.findByText(/פרופיל חדש/);
+    await act(async () => {
+      resolveChildren({ data: [SAVED_CHILD], error: null });
+    });
+    const loaded = updates.find((u) => u.childName === SAVED_CHILD.name);
+    expect(loaded).toBeDefined();
+    for (const u of updates) {
+      for (const k of ["hairColor", "hairStyle", "clothingType", "clothingColor"]) {
+        expect(Object.prototype.hasOwnProperty.call(u, k)).toBe(false);
+      }
+    }
+    expect(screen.queryByText("צבע שיער")).toBeNull();
+    expect(screen.queryByText("סוג לבוש")).toBeNull();
   });
 });

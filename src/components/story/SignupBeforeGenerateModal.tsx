@@ -51,10 +51,6 @@ const SignupBeforeGenerateModal = ({
         gender: formData.childGender === "female" ? "female" : "male",
         personality_traits: formData.personalityTraits || null,
         fixed_details: formData.fixedDetails || null,
-        clothing_type: formData.clothingType || null,
-        clothing_color: formData.clothingColor || null,
-        hair_color: formData.hairColor || null,
-        hair_style: formData.hairStyle || null,
         photo_url: formData.childPhoto || null,
         avatar_url: formData.childAvatarUrl || null,
       });

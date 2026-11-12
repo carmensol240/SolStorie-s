@@ -6,6 +6,7 @@
 //   (AVATAR_STYLE_CUTOFF stories: the hero keeps the avatar's own render style — AVATAR_STYLE_BLOCK.)
 //   3. STYLE (Pixar 3D), 4. SCENE, 5. one short RULES block, 6. fix after a failed check, 7. NEGATIVE.
 // Reference pictures are always attached in the same order: face, page reference, Leo.
+import { stripStyleWords } from "./short-prompt.ts";
 import { PIXAR_STYLE, leoRefNote, negativePromptFor } from "./style-config.ts";
 import { featuresLine, type AvatarTraits } from "./avatar-traits.ts";
 
@@ -134,7 +135,7 @@ export function buildIllustrationPrompt(input: IllustrationPromptInput): string 
   if (!ord.face && !ord.canon) parts.push("NO REFERENCE PICTURE: create the main child exactly from the RULES description below and keep this look.");
   parts.push(avatarStyle ? `STYLE (scene and companions): ${PIXAR_STYLE}` : `STYLE: ${PIXAR_STYLE}`);
   if (avatarStyle) parts.push(AVATAR_STYLE_BLOCK);
-  parts.push(input.scene.trim());
+  parts.push(stripStyleWords(input.scene).trim()); // every picture is 3D (locked rule 4)
   parts.push(rulesBlock(hero, !!ord.face, input.rules));
   if (input.fix?.trim()) parts.push(input.fix.trim());
   if (input.formatRule?.trim()) parts.push(input.formatRule.trim());

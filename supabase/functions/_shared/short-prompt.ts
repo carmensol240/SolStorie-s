@@ -99,9 +99,76 @@ export function stripHeroClothes(scene: string): string {
   return s.trim();
 }
 
+// ─── Hair and drawing style come only from the avatar ───
+// The writer sometimes adds a hair colour/hairstyle or a drawing style ("watercolor", "2D") to the scene.
+// Hair always comes from the avatar, and every picture is 3D (locked rule 4), so both are removed.
+
+const HAIR_ADJ = "(?:loose|flowing|fine|voluminous|bouncy|layered|cropped|buzzed|slightly|very|long|short|shoulder-length|chin-length|medium-length|curly|wavy|straight|messy|tousled|spiky|fluffy|thick|silky|shiny|soft|neat|light|dark|bright|pale|golden|platinum|sandy|honey|strawberry|dirty|ash|jet|jet-black|blond|blonde|brown|black|red|ginger|auburn|brunette|chestnut|copper|caramel|reddish|light-brown|dark-brown)";
+const HAIR_TAIL = "(?:\\s+(?:in|with|tied in|pulled into|styled in)\\s+(?:a|an|two|his|her)?\\s*(?:[A-Za-z'-]+\\s+){0,2}?(?:ponytails?|pigtails?|braids?|buns?|bangs|curls|fringe))?";
+const WHO_HAS_HAIR = new RegExp(`,?\\s*\\bwho\\s+has\\s+(?:(?:a|his|her)\\s+)?(?:${HAIR_ADJ}[\\s,-]+(?:and\\s+)?){1,5}hair\\b${HAIR_TAIL}`, "gi");
+const WITH_HAIR_AND = new RegExp(`\\b(with|has)\\s+(?:(?:a|his|her)\\s+)?(?:${HAIR_ADJ}[\\s,-]+(?:and\\s+)?){1,5}hair\\b${HAIR_TAIL}\\s+and\\s+`, "gi");
+const HAIR_PHRASE = new RegExp(`,?\\s*\\b(?:with|has|having)?\\s*(?:(?:a|his|her)\\s+)?(?:${HAIR_ADJ}[\\s,-]+(?:and\\s+)?){1,4}hair\\b${HAIR_TAIL}`, "gi");
+const HAIRED_MID = new RegExp(`,\\s*(?:${HAIR_ADJ}-)+haired\\s*,`, "gi");
+const HAIRED = new RegExp(`\\b(?:${HAIR_ADJ}-)+haired\\b\\s*`, "gi");
+const HAIR_COLOR_WORD = /\b(?:blond|blonde|golden-haired|fair-haired|redheaded|redhead)\s+(?=(?:boy|girl|child|kid|hero)\b)/gi;
+const HAIR_STYLE_ONLY = /,?\s*\b(?:with|in)\s+(?:a|an|two|his|her)\s+(?:[A-Za-z'-]+\s+){0,2}?(?:ponytails?|pigtails?|braids?|bun|buns)\b/gi;
+
+/** Removes the hero's hair colour/hairstyle from the writer's scene text (hair comes only from the avatar). */
+export function stripHeroHair(scene: string): string {
+  const src = String(scene || "");
+  let s = src.replace(WHO_HAS_HAIR, "").replace(WITH_HAIR_AND, "$1 ").replace(HAIR_PHRASE, "").replace(HAIRED_MID, ",").replace(HAIRED, "").replace(HAIR_COLOR_WORD, "").replace(HAIR_STYLE_ONLY, "");
+  if (s === src) return src;
+  return tidy(s);
+}
+
+const STYLE_SUFFIX = "(?:\\s+(?:art\\s+)?(?:style|look|illustration|drawing|painting|render(?:ing)?|effect|texture|aesthetic|animation|art))";
+// Always a drawing style.
+const STYLE_ALWAYS = "(?:flat\\s+colou?rs?|flat\\s+shading|watercolou?r|water-colou?r|2d|2-d|painterly|anime|manga|gouache|hand-drawn|cartoonish|cartoon-like|cel-shaded)";
+// A style only when followed by style/illustration/drawing… ("holding a crayon" stays).
+const STYLE_WITH_SUFFIX = "(?:flat|flat\\s+vector|vector|cartoon|comic(?:-book|\\s+book)?|sketch|pencil|crayon|pastel|oil|line|ink|storybook|children's\\s+book|picture\\s+book|classic|traditional|paper\\s+cut-?out)";
+const STYLE_PHRASE = new RegExp(
+  `,?\\s*\\b(?:(?:in|with)\\s+(?:a|an|the)\\s+)?(?:(?:soft|gentle|loose|simple|whimsical|delicate|bright)\\s+)?(?:${STYLE_ALWAYS}${STYLE_SUFFIX}{0,2}|${STYLE_WITH_SUFFIX}${STYLE_SUFFIX}{1,2})\\b`, "gi");
+const STYLE_SENTENCE = /(^|[.!?]\s+)(?:art\s+)?style\s*:[^.!?\n]*[.!?]?/gi;
+
+/** Removes drawing-style words the writer added (every picture is 3D; locked rule 4). */
+export function stripStyleWords(scene: string): string {
+  const src = String(scene || "");
+  let s = src.replace(STYLE_SENTENCE, "$1");
+  for (let i = 0; i < 3; i++) s = s.replace(STYLE_PHRASE, ""); // "2D cartoon style" = two phrases
+  if (s === src) return src;
+  return tidy(s);
+}
+
+function tidy(s: string): string {
+  return s.replace(/[ \t]{2,}/g, " ").replace(/\s+([,.;!?])/g, "$1").replace(/,\s*,/g, ",").replace(/,([.;!?])/g, "$1")
+    .replace(/(^|\n)\s*[,;]\s*/g, "$1").replace(/\(\s*\)/g, "").replace(/([.!?])\s*[,;]\s*/g, "$1 ")
+    .replace(/(\b(?:[A-Z][a-z]+|boy|girl|child|toddler|kid))\s+and\s+(a|an|his|her)\s+((?:small\s+|tiny\s+|knitted\s+)?(?:kippah|yarmulke|glasses))/g, "$1 with $2 $3")
+    .replace(/\.{2,}/g, ".").replace(/\s+([,.;!?])/g, "$1").replace(/(^|[.!?]\s+)([a-z])/g, (_m, a, b) => a + b.toUpperCase()).trim();
+}
+
+/**
+ * Scene text saved by generate-story: drawing-style words always removed; for short-instruction stories also
+ * the hero's hair (avatar), and the hero's clothes when the parent asked for none (story_outfit empty).
+ */
+export function cleanSavedScene(scene: string, opts: { short: boolean; requestedOutfit?: string | null }): string {
+  let s = String(scene || "");
+  if (opts.short) {
+    if (!String(opts.requestedOutfit || "").trim()) s = stripHeroClothes(s);
+    s = stripHeroHair(s);
+  }
+  return stripStyleWords(s);
+}
+
+/** Short line: only the characters of this page appear (the hero, the page's gang members and the people named in the scene). */
+export function onlyCharactersLine(cast: ShortCastKey[]): string {
+  const names = ["the main child", ...cast.map((k) => NAME[k])];
+  return `Only these characters appear: ${names.join(", ")} and the people named in the scene — no other children.`;
+}
+
 export function buildShortIllustrationPrompt(input: ShortPromptInput): string {
   const outfit = String(input.requestedOutfit || "").trim();
-  const lines: string[] = [AVATAR_LINE, (outfit ? input.scene : stripHeroClothes(input.scene)).trim()];
+  const scene = cleanSavedScene(input.scene, { short: true, requestedOutfit: outfit });
+  const lines: string[] = [AVATAR_LINE, scene.trim(), onlyCharactersLine(input.cast || [])];
   lines.push(outfit ? requestedClothesLine(outfit) : AVATAR_CLOTHES_LINE);
   lines.push(PLOT_CLOTHES_LINE);
   if (input.kippah) lines.push(`The child wears a small knitted ${input.kippahColor || "dark blue"} kippah on the head (hair visible).`);
@@ -129,13 +196,19 @@ export const HERO_CLOTHES_WRITER_RULE_HE =
   "- הבגדים של הגיבור/ה נלקחים אוטומטית מהאווטאר שלו/ה. **אסור** לתאר את בגדי הגיבור/ה ב-illustration_prompt (לא חולצה, לא צבע בגד, לא תחפושת, לא גלימה, לא מדים, לא סמל).\n" +
   "- **אסור** להלביש את הגיבור/ה בתחפושת, במדים או בבגדים מיוחדים בטקסט הסיפור, אלא אם ההורה ביקש את זה במפורש בטקסט שכתב.\n" +
   "- מותר רק שינוי בגדים שהוא חלק מהעלילה (פיג'מה לפני השינה, מעיל בגשם), ורק בטקסט העמוד.\n" +
-  "- דמויות החבורה: כמו תמיד, רק שם באנגלית ומה הן עושות — הבגדים הרשמיים שלהן מתווספים אוטומטית.\n";
+  "- דמויות החבורה: כמו תמיד, רק שם באנגלית ומה הן עושות — הבגדים הרשמיים שלהן מתווספים אוטומטית.\n" +
+  "- גם השיער של הגיבור/ה נלקח מהאווטאר: **אסור** לכתוב צבע שיער או תסרוקת של הגיבור/ה, ואסור לכתוב סגנון ציור (watercolor, 2D, cartoon וכו') ב-illustration_prompt.\n" +
+  "- בכל illustration_prompt לכתוב רק את הדמויות שמופיעות בעמוד הזה, בשמן. לא להוסיף ילדים או אנשים שלא כתובים בעמוד.\n" +
+  "- המשפחה קבועה בכל הסיפור: אותו מספר אחים ואחיות, אותם שמות ואותם גילים בכל העמודים.\n";
 export const HERO_CLOTHES_WRITER_RULE_EN =
   "\n\n## Hero clothes — overrides every outfit/wardrobe instruction above\n" +
   "- The hero's clothes come automatically from the child's avatar. Never describe the hero's clothes in illustration_prompt (no shirt, garment colour, costume, cape, uniform or emblem).\n" +
   "- Never dress the hero in a costume, uniform or special clothes in the story text unless the parent's own request explicitly asks for it.\n" +
   "- Only a plot change of clothes (pajamas at bedtime, a raincoat in the rain) is allowed, and only in the page text.\n" +
-  "- Gang characters: as always, only their English name and what they do — their official clothes are added automatically.\n";
+  "- Gang characters: as always, only their English name and what they do — their official clothes are added automatically.\n" +
+  "- The hero's hair also comes from the avatar: never write the hero's hair colour or hairstyle, and never a drawing style (watercolor, 2D, cartoon…) in illustration_prompt.\n" +
+  "- In every illustration_prompt name only the characters who appear on that page. Never add children or people who are not on the page.\n" +
+  "- The family stays the same through the whole story: same number of siblings, same names and same ages on every page.\n";
 
 // ─── Checks after the drawing ───
 
@@ -145,7 +218,12 @@ export interface ClothesCheck {
   cast: ShortCastKey[];
   /** The page's story text without nikud (lets a plot change of clothes pass). */
   pageText?: string;
+  /** The page's scene description (who may appear besides the hero and the gang). */
+  scene?: string;
 }
+
+/** JSON keys answered by clothesCheckQuestions. */
+export const CLOTHES_JSON_KEYS = '"hero_clothes_ok":bool,"gang_clothes_ok":bool,"foreign_flag":bool,"hero_hair_ok":bool,"extra_child":bool,';
 
 /** Clothes + flag questions. `page` / `avatar` name the pictures, e.g. "Image B" / "Image A". */
 export function clothesCheckQuestions(page: string, avatar: string, c: ClothesCheck): string {
@@ -156,6 +234,10 @@ export function clothesCheckQuestions(page: string, avatar: string, c: ClothesCh
   if (c.cast.length) {
     q += `- gang_clothes_ok: does each of these characters in ${page} wear only their own official clothes — ${c.cast.map((k) => `${NAME[k]}: ${GANG_CLOTHES[k]}`).join("; ")} — and none of them wears the main child's clothes? true for a character who is not visible.\n`;
   }
+  q += `- hero_hair_ok: is the main child's hair in ${page} the same colour AND about the same length as in ${avatar}? false if clearly lighter/darker (e.g. blond vs dark brown) or clearly shorter/longer.\n`;
+  const scene = String(c.scene || "").replace(/\s+/g, " ").trim().slice(0, 300);
+  const allowed = ["the main child", ...c.cast.map((k) => NAME[k])].join(", ");
+  q += `- extra_child: is there any child in ${page} other than ${allowed} and the children mentioned in this page's story text${scene ? ` or scene ("${scene}")` : ""}? Babies count as children; adults do not.\n`;
   q += `- foreign_flag: is there any flag other than Israel's (blue star of David on white), or a stars-and-stripes pattern, anywhere in ${page}?\n`;
   return q;
 }
@@ -163,12 +245,22 @@ export function clothesCheckQuestions(page: string, avatar: string, c: ClothesCh
 export const HERO_CLOTHES_PROBLEM = "hero clothes";
 export const GANG_CLOTHES_PROBLEM = "gang clothes";
 export const FLAG_PROBLEM = "foreign flag";
+/** Hair colour/length differs from the avatar — never saved, not even as the closest try. */
+export const HERO_HAIR_PROBLEM = "hero hair";
+/** A child who is not on the page — redrawn, and never saved if the redraw fails too. */
+export const EXTRA_CHILD_PROBLEM = "extra child";
+export const HARD_PROBLEMS = [HERO_HAIR_PROBLEM, EXTRA_CHILD_PROBLEM] as const;
+export function hasHardProblem(problems: string[]): boolean {
+  return problems.some((x) => (HARD_PROBLEMS as readonly string[]).includes(x));
+}
 
 export function clothesProblemsFrom(p: Record<string, unknown>, c: ClothesCheck): string[] {
   const out: string[] = [];
   if (p.hero_clothes_ok === false) out.push(HERO_CLOTHES_PROBLEM);
   if (c.cast.length && p.gang_clothes_ok === false) out.push(GANG_CLOTHES_PROBLEM);
   if (p.foreign_flag === true) out.push(FLAG_PROBLEM);
+  if (p.hero_hair_ok === false) out.push(HERO_HAIR_PROBLEM);
+  if (p.extra_child === true) out.push(EXTRA_CHILD_PROBLEM);
   return out;
 }
 
@@ -180,6 +272,8 @@ export function clothesFixInstruction(problems: string[], outfit?: string | null
   }
   if (problems.includes(GANG_CLOTHES_PROBLEM)) parts.push("gang characters wear only their own official clothes — never the main child's clothes");
   if (problems.includes(FLAG_PROBLEM)) parts.push("no flags at all except Israel's, no stars-and-stripes anywhere");
+  if (problems.includes(HERO_HAIR_PROBLEM)) parts.push("the main child's hair has exactly the avatar's colour and length");
+  if (problems.includes(EXTRA_CHILD_PROBLEM)) parts.push("only the characters named in the scene — no other children");
   return parts.length ? `CLOTHES FIX (the previous attempt was wrong): ${parts.join("; ")}.` : "";
 }
 

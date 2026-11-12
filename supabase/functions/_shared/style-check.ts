@@ -4,7 +4,7 @@
 // the previous picture stays (or, for a page that had none, see redrawDecision) and the admin is alerted.
 import { LOOK_KEPT_PREFIX, AVATAR_STYLE_FACE_FIX, AVATAR_BLEND_FIX } from "./look-check.ts";
 import { imageSize, shapeMatches, shapeFixInstruction, SHAPE_PROBLEM } from "./illustration-format.ts";
-import { clothesCheckQuestions, clothesProblemsFrom, clothesFixInstruction, type ClothesCheck } from "./short-prompt.ts";
+import { clothesCheckQuestions, clothesProblemsFrom, clothesFixInstruction, hasHardProblem, CLOTHES_JSON_KEYS, type ClothesCheck } from "./short-prompt.ts";
 
 export const STYLE_PROBLEM = "not 3D Pixar";
 export const MAX_STYLE_REDRAWS = 2;
@@ -106,7 +106,10 @@ export function redrawDecision(tries: RedrawTry[], opts: { hadExisting: boolean;
   if (ok >= 0) return { action: "save", index: ok };
   if (opts.hadExisting || tries.length === 0) return tries.length === 0 && !opts.hadExisting ? { action: "hold" } : { action: "keep_old" };
   if (opts.pageNumber !== 1) return { action: "hold" };
-  const index = closestTryIndex(tries);
+  // Wrong hair vs the avatar or an extra child: never saved, not even as the closest try.
+  const allowed = tries.map((t, i) => ({ t, i })).filter(({ t }) => !hasHardProblem(t.problems));
+  if (!allowed.length) return { action: "hold" };
+  const index = allowed[closestTryIndex(allowed.map(({ t }) => t))].i;
   // Never save a flat 2D / photo try as the closest one.
   if (hasStyleProblem(tries[index].problems)) return { action: "hold" };
   return { action: "save_closest", index, identityCheck: `${LOOK_KEPT_PREFIX}: ${tries[index].problems.join(", ")}`.slice(0, 300) };
@@ -156,7 +159,7 @@ export async function checkRedrawPicture(
         (avatarStyle ? avatarStyleQuestions("B", "A") : "") +
         (clothes ? `Now look at the clothes and objects of Image B (clothes do count for these):\n${clothesCheckQuestions("Image B", "Image A", clothes)}` : "")
       : "") +
-    `Answer strict JSON only: {"pixar_3d":bool,"photo_realistic":bool,"has_text":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,${avatarStyle ? '"avatar_style_match":bool,"avatar_blend":bool,' : ""}${clothes ? '"hero_clothes_ok":bool,"gang_clothes_ok":bool,"foreign_flag":bool,' : ""}"reason":"<max 15 words>"}`;
+    `Answer strict JSON only: {"pixar_3d":bool,"photo_realistic":bool,"has_text":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,${avatarStyle ? '"avatar_style_match":bool,"avatar_blend":bool,' : ""}${clothes ? CLOTHES_JSON_KEYS : ""}"reason":"<max 15 words>"}`;
   const content: any[] = [{ type: "text", text }];
   if (faceUrl) content.push({ type: "image_url", image_url: { url: faceUrl } });
   content.push({ type: "image_url", image_url: { url: imageUrl } });

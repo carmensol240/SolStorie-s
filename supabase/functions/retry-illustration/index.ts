@@ -10,7 +10,7 @@ import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
 import { pickFramingAngle, framingComposition, usesConsistentFraming } from "../_shared/camera-framing.ts";
 import { reserveRedraws, releaseRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
 import { avatarWinsRule, likenessFlags, usesAvatarStyle, normalizeHairShade, realAgeText } from "../_shared/avatar-traits.ts";
-import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
+import { mergeAppearance, formAppearanceFor, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import {
@@ -351,10 +351,10 @@ serve(async (req) => {
     }
 
     // ===== One shared instruction (same builder as first drawings) =====
-    const ap = mergeAppearance(null, {
+    const ap = mergeAppearance(null, formAppearanceFor((story as any).created_at, {
       hairColor: childRow?.hair_color, hairStyle: childRow?.hair_style,
       clothingType: childRow?.clothing_type, clothingColor: childRow?.clothing_color,
-    });
+    }));
     const outfit = ((story as any).story_outfit || clothingToEnglish(ap, (story as any).child_gender) || "");
     const kp = kippahForStory(story as any);
     // Saved hero_traits switch the avatar rules on for any story (older ones only when an admin saved them).
@@ -510,7 +510,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     // Time budget: the browser waits for this answer (~150 s platform cut-off).
     const REDRAW_START_LIMIT_MS = 85_000;
     const HARD_LIMIT_MS = 140_000;
-    const clothesCheck: ClothesCheck | null = shortOn ? { outfit: requestedOutfit, cast: pageCast, pageText: String((page as any).text || "") } : null;
+    const clothesCheck: ClothesCheck | null = shortOn ? { outfit: requestedOutfit, cast: pageCast, pageText: String((page as any).text || ""), scene: String(visualDescription || "") } : null;
     const checkOpts = { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn, clothes: clothesCheck, allowText: String(story.topic || "").startsWith("letter-") || String(story.topic || "").startsWith("number-") };
     const tries: { image: string; model: string; problems: string[]; reason: string }[] = [];
     let fix = "";

@@ -50,11 +50,7 @@ export interface StoryFormData {
   personalityTraits: string;
   className: string;
   fixedDetails: string;
-  clothingType: string;
-  clothingColor: string;
   kippah?: boolean;
-  hairColor: string;
-  hairStyle: string;
   adventureLogic?: AdventureLogic;
 }
 
@@ -74,11 +70,7 @@ const INITIAL_DATA: StoryFormData = {
   personalityTraits: "",
   className: "",
   fixedDetails: "",
-  clothingType: "",
-  clothingColor: "",
   kippah: false,
-  hairColor: "",
-  hairStyle: "",
 };
 
 const steps = [
@@ -306,16 +298,17 @@ const CreateStory = () => {
     if (!user || !savedChildId) { setSavedFace({ id: null, has: false, loading: false }); return; }
     let cancelled = false;
     setSavedFace({ id: savedChildId, has: false, loading: true });
-    supabase.from("children").select("avatar_url, photo_url").eq("id", savedChildId).eq("user_id", user.id).maybeSingle()
+    supabase.from("children").select("avatar_url").eq("id", savedChildId).eq("user_id", user.id).maybeSingle()
       .then(({ data }) => {
         if (cancelled) return;
-        setSavedFace({ id: savedChildId, has: Boolean(data?.avatar_url || data?.photo_url), loading: false });
+        // Only a saved avatar counts: a photo without an avatar is not enough for a story.
+        setSavedFace({ id: savedChildId, has: Boolean(data?.avatar_url), loading: false });
       });
     return () => { cancelled = true; };
   }, [user, savedChildId]);
 
-  // A usable face is required: new photo + consent, or a saved profile with avatar/photo.
-  const canProceedPersonalization = canProceedWithPhoto(formData.childPhoto, formData.photoConsent, savedFace.has);
+  // The avatar is required: new photo + consent + its avatar, or a saved profile with an avatar.
+  const canProceedPersonalization = canProceedWithPhoto(formData.childPhoto, formData.photoConsent, savedFace.has, formData.childAvatarUrl);
   const [photoHint, setPhotoHint] = useState(false);
   useEffect(() => { if (canProceedPersonalization) setPhotoHint(false); }, [canProceedPersonalization]);
 
@@ -358,10 +351,6 @@ const CreateStory = () => {
           avatar_url: formData.childAvatarUrl || null,
           personality_traits: formData.personalityTraits || null,
           fixed_details: formData.fixedDetails || null,
-          clothing_type: formData.clothingType || null,
-          clothing_color: formData.clothingColor || null,
-          hair_color: formData.hairColor || null,
-          hair_style: formData.hairStyle || null,
           kippah: formData.childGender === "male" && !!formData.kippah,
         }).select("id").single();
         if (error) throw error;
@@ -674,7 +663,9 @@ const CreateStory = () => {
           <div className="container max-w-lg mx-auto">
             {step === 2 && photoHint && !canProceedPersonalization && (
               <p role="status" className="mb-2 rounded-lg bg-accent px-3 py-2 text-center text-sm font-medium text-accent-foreground">
-                צריך תמונה אחת כדי שהדמות תהיה דומה ל{formData.childName?.trim() || "ילד/ה"} 📸
+                {formData.childPhoto
+                  ? `מחכים לאווטאר של ${formData.childName?.trim() || "הילד/ה"} – בלי אווטאר אי אפשר ליצור סיפור`
+                  : `צריך תמונה אחת כדי שהדמות תהיה דומה ל${formData.childName?.trim() || "ילד/ה"} 📸`}
               </p>
             )}
             <Button

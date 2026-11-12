@@ -10,10 +10,14 @@ describe("required child photo", () => {
   it("new photo without consent → cannot continue", () => {
     expect(canProceedWithPhoto("https://x/p.jpg", false)).toBe(false);
   });
-  it("new photo + consent → can continue", () => {
-    expect(canProceedWithPhoto("https://x/p.jpg", true)).toBe(true);
+  it("new photo + consent without an avatar → cannot continue (no avatar = no story)", () => {
+    expect(canProceedWithPhoto("https://x/p.jpg", true)).toBe(false);
+    expect(canProceedWithPhoto("https://x/p.jpg", true, false, "")).toBe(false);
   });
-  it("saved profile with avatar/photo → can continue without new upload or consent", () => {
+  it("new photo + consent + its avatar → can continue", () => {
+    expect(canProceedWithPhoto("https://x/p.jpg", true, false, "data:image/png;base64,AAA")).toBe(true);
+  });
+  it("saved profile with an avatar → can continue without new upload or consent", () => {
     expect(canProceedWithPhoto(null, false, true)).toBe(true);
   });
 });

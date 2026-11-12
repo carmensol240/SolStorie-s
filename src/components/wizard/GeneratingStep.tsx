@@ -237,10 +237,6 @@ const GeneratingStep = ({ formData, requestId, onComplete }: GeneratingStepProps
             // Device ID: the free taste is limited to one per device.
             device_id: (() => { try { let d = localStorage.getItem('storyteller_device_id'); if (!d) { d = 'device_' + crypto.randomUUID(); localStorage.setItem('storyteller_device_id', d); } return d; } catch { return undefined; } })(),
             appearance: {
-              hairColor: formData.hairColor || "",
-              hairStyle: formData.hairStyle || "",
-              clothingType: formData.clothingType || "",
-              clothingColor: formData.clothingColor || "",
               // Only what the parent sends now counts; a girl never gets a kippah.
               kippah: formData.childGender === "male" && !!(formData as any).kippah,
             },

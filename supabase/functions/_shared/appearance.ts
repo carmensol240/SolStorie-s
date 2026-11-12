@@ -52,6 +52,25 @@ const tr = (map: Record<string, string>, v?: string | null) => {
 };
 
 /** Request values win; saved profile values fill any gaps. Each field independent. */
+/**
+ * Stories created from this moment take the child's looks only from the avatar and the parent's free text:
+ * the form/profile hair and clothing fields (children.hair_color, hair_style, clothing_type, clothing_color
+ * and the request's appearance.hair/clothing) are ignored. Older stories and their redraws keep them.
+ */
+export const APPEARANCE_FROM_AVATAR_CUTOFF = "2026-11-12T10:20:00Z";
+
+/** True only for stories created before APPEARANCE_FROM_AVATAR_CUTOFF (no date = a new story). */
+export function usesFormAppearance(createdAt: string | null | undefined): boolean {
+  if (!createdAt) return false;
+  const t = Date.parse(createdAt);
+  return !Number.isNaN(t) && t < Date.parse(APPEARANCE_FROM_AVATAR_CUTOFF);
+}
+
+/** The form/profile appearance for older stories; empty for stories from APPEARANCE_FROM_AVATAR_CUTOFF. */
+export function formAppearanceFor(createdAt: string | null | undefined, ap: Appearance | null | undefined): Appearance {
+  return usesFormAppearance(createdAt) && ap ? ap : {};
+}
+
 export function mergeAppearance(fromRequest?: Appearance | null, fromProfile?: Appearance | null): Appearance {
   // Text fields only; the kippah is never merged from the profile (see kippahForRequest).
   const pick = (k: "hairColor" | "hairStyle" | "clothingType" | "clothingColor") => clean(fromRequest?.[k]) || clean(fromProfile?.[k]) || "";

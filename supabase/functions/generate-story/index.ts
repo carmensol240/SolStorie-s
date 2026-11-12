@@ -1,12 +1,12 @@
 import { saveAvatarCover } from "../_shared/avatar-cover.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { mergeAppearance, kippahForRequest, kippahColor, type Appearance } from "../_shared/appearance.ts";
+import { mergeAppearance, kippahForRequest, kippahColor, usesFormAppearance, type Appearance } from "../_shared/appearance.ts";
 import { readSwitch, decideFormat } from "../_shared/illustration-format.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { isBlockedEmail, DISPOSABLE_EMAIL_MESSAGE_HE } from "../_shared/disposable-email.ts";
-import { hasFaceSource, NO_FACE_MESSAGE } from "../_shared/face-required.ts";
+import { hasAvatarSource, NO_AVATAR_MESSAGE } from "../_shared/face-required.ts";
 import { buildNlpInstruction, runNlpCheck } from "../_shared/nlp-techniques.ts";
 import { splitLongPages, MAX_PAGE_CHARS } from "../_shared/page-split.ts";
 import { editHebrewPages, gatewayEditorCall, retryFailingPages, pageProblems, wordsMissingNikud, SAFETY_NET_MAX_RETRIES, type EditorInput, type EditorState, type EditorReport } from "../_shared/hebrew-editor.ts";
@@ -19,7 +19,7 @@ import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isVa
 import { normalizeEmail, decideTasteEligibility, tastePageLimit, emailTasteHash } from "../_shared/taste.ts";
 import { plannedIllustrationPages, enforceCastAndTastePictures, castPromptAddition, CAST_INTRO_HE, type CastKey } from "../_shared/story-cast-pages.ts";
 import { isHeroCastName } from "../_shared/style-config.ts";
-import { usesShortPrompt, detectRequestedOutfit, stripHeroClothes, HERO_CLOTHES_WRITER_RULE_HE, HERO_CLOTHES_WRITER_RULE_EN } from "../_shared/short-prompt.ts";
+import { usesShortPrompt, detectRequestedOutfit, cleanSavedScene, HERO_CLOTHES_WRITER_RULE_HE, HERO_CLOTHES_WRITER_RULE_EN } from "../_shared/short-prompt.ts";
 
 async function sha256Hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -1238,20 +1238,20 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
       );
     }
 
-    // === FACE REQUIRED: refuse before any row, charge or AI call ===
+    // === AVATAR REQUIRED: refuse before any row, charge or AI call (looks = avatar + free text only) ===
     {
-      let savedFace: { avatar_url?: string | null; photo_url?: string | null } | null = null;
-      if (userId && !hasFaceSource(childPhoto, childAvatarUrlRaw, null)) {
+      let savedFace: { avatar_url?: string | null } | null = null;
+      if (userId && !hasAvatarSource(childAvatarUrlRaw, null)) {
         const validId = typeof childId === "string" && /^[0-9a-f-]{36}$/i.test(childId) ? childId : null;
-        let fq = supabase.from("children").select("avatar_url, photo_url").eq("user_id", userId);
+        let fq = supabase.from("children").select("avatar_url").eq("user_id", userId);
         fq = validId ? fq.eq("id", validId) : fq.eq("name", childName);
         const { data } = await fq.limit(1).maybeSingle();
         savedFace = (data as any) || null;
       }
-      if (!hasFaceSource(childPhoto, childAvatarUrlRaw, savedFace)) {
-        console.warn("[generate-story] REFUSED: no face source (no photo, no avatar, no saved child face)");
+      if (!hasAvatarSource(childAvatarUrlRaw, savedFace)) {
+        console.warn("[generate-story] REFUSED: no avatar (request or saved child)");
         return new Response(
-          JSON.stringify({ error: NO_FACE_MESSAGE, code: "no_face" }),
+          JSON.stringify({ error: NO_AVATAR_MESSAGE, code: "no_avatar" }),
           { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -1348,7 +1348,9 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     
     // === FETCH CHILD PERSONALIZATION FROM DB ===
     // Appearance chosen in the form (sent with the request) wins over the saved profile.
-    const reqAppearance: Appearance = (reqBody && typeof reqBody.appearance === "object" && reqBody.appearance) ? {
+    // From APPEARANCE_FROM_AVATAR_CUTOFF the looks come only from the avatar + free text: form/profile hair and clothes are ignored.
+    const formAppearanceOn = usesFormAppearance(new Date().toISOString());
+    const reqAppearance: Appearance = formAppearanceOn && (reqBody && typeof reqBody.appearance === "object" && reqBody.appearance) ? {
       hairColor: String(reqBody.appearance.hairColor ?? "").slice(0, 40),
       hairStyle: String(reqBody.appearance.hairStyle ?? "").slice(0, 40),
       clothingType: String(reqBody.appearance.clothingType ?? "").slice(0, 40),
@@ -1384,10 +1386,10 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
           if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
           if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
           if (childData.favorite_friends?.trim()) parts.push(`חברים וצעצועים אהובים: ${childData.favorite_friends.trim()}`);
-          const ap = mergeAppearance(reqAppearance, {
+          const ap = mergeAppearance(reqAppearance, !formAppearanceOn ? {} : ({
             hairColor: childData.hair_color, hairStyle: childData.hair_style,
             clothingType: childData.clothing_type, clothingColor: childData.clothing_color,
-          });
+          } as Appearance));
           appendAppearanceParts(parts, ap);
           formClothesLine = appearanceClothesLine(ap);
           if (parts.length > 0) {
@@ -2592,15 +2594,15 @@ ${fullStoryText}`;
           `Fallback illustration prompt generated for page ${page.page_number} - model omitted prompt`,
         );
       }
-      // Short-instruction story without a parent clothes request: no hero clothes in the saved scene.
-      if (promptForPage && shortWriter && !requestedOutfit) promptForPage = stripHeroClothes(promptForPage);
+      // No drawing-style words; short-instruction stories: no hero hair, and no hero clothes without a parent request.
+      if (promptForPage) promptForPage = cleanSavedScene(promptForPage, { short: shortWriter, requestedOutfit });
       return {
         story_id: story.id,
         page_number: page.page_number,
         text: page.text,
         illustration_prompt: promptForPage,
         illustration_prompt_2: isToddlerAge && page.illustration_prompt
-          ? `Same scene as the main illustration but from a DIFFERENT camera angle or showing the NEXT moment in the action. Original scene: ${shortWriter && !requestedOutfit ? stripHeroClothes(page.illustration_prompt) : page.illustration_prompt}`
+          ? `Same scene as the main illustration but from a DIFFERENT camera angle or showing the NEXT moment in the action. Original scene: ${cleanSavedScene(page.illustration_prompt, { short: shortWriter, requestedOutfit })}`
           : null,
         illustration_url: null,
         illustration_url_2: null,

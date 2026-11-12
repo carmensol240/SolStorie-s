@@ -136,3 +136,13 @@
 - [x] Experiment on test child Noam: same page from avatar vs photo (nothing saved to a story)
 
 - [x] Uriel (a19bd350): cover switched to his avatar (cover-avatar.png), no drawing, no page touched
+
+## Appearance from avatar + free text only (12-11-2026)
+- [x] Remove hair/clothing fields from all screens; stop reading/writing them
+- [x] Server ignores old appearance fields for new stories; no auto-fill
+- [x] Strip hero hair + style words from scenes
+- [x] No avatar = no story (before charge), retry + WhatsApp message
+- [x] Hair colour/length mismatch vs avatar never saved (page empty + alert)
+- [x] Only characters named appear; consistent family; extra-child check
+- [x] Ari: clean scenes (incl. prompt_2), redraw pages 2,3,5,6
+- [x] Tests + AGENTS.md

@@ -6,7 +6,7 @@ const PREFIX = "create_draft_";
 
 const FIELDS = [
   "childName", "childGender", "ageRange", "childAge", "storyLength", "nikud", "language",
-  "hairColor", "hairStyle", "clothingType", "clothingColor", "kippah",
+  "kippah",
   "personalityTraits", "fixedDetails", "className", "photoConsent",
   "topic", "customTopic", "childPhoto", "childAvatarUrl", "childId",
 ] as const;
