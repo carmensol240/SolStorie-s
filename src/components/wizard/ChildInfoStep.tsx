@@ -845,8 +845,13 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         </div>
       </div>
 
-      {/* Clothing type · Clothing color — hidden: new stories dress the child like the avatar
-          (or as the parent asks in the free text). Saved profile values are kept. */}
+      {/* Clothing hint — the clothing type/color questions are hidden: new stories dress the
+          child like the avatar (or as the parent asks in the free text). Saved profile values are kept. */}
+      <p className="text-sm text-muted-foreground">
+        👕 את הבגדים ניקח{formData.childName?.trim() ? ` מהתמונה של ${formData.childName.trim()}` : " מהתמונה"}.
+        רוצים תחפושת או בגדים מיוחדים? כתבו את זה בתיבה של הסיפור בשלב הבא.
+      </p>
+
       {SHOW_CLOTHING_QUESTIONS && (
       <div className="space-y-1">
         <Label id="child-clothing-label" className="text-sm font-medium">סוג לבוש</Label>
