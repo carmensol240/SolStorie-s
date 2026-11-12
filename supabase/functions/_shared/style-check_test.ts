@@ -68,3 +68,25 @@ Deno.test("likeness: missing distinguishing features fail the face check and are
   if (!p.includes("avatar features")) throw new Error("features not checked");
   if (!redrawFixInstruction(p, { features: ["no bangs"] }).includes("no bangs")) throw new Error("features not in fix");
 });
+
+Deno.test("avatar style stories: the mandatory 3D check is not weaker — flat 2D and real photos still fail", async () => {
+  const { styleQuestions, AVATAR_STYLE_FIX_INSTRUCTION } = await import("./style-check.ts");
+  const q = styleQuestions(true);
+  for (const want of ["pixar_3d", "flat 2D", "watercolor", "real photo", "photo_realistic"]) assert(q.includes(want), want);
+  assertEquals(styleProblemsFrom({ pixar_3d: false, photo_realistic: false }), [STYLE_PROBLEM]);
+  assertEquals(styleProblemsFrom({ pixar_3d: true, photo_realistic: true }), ["realistic style"]);
+  const fix = redrawFixInstruction([STYLE_PROBLEM], { avatarStyle: true });
+  assertEquals(fix, AVATAR_STYLE_FIX_INSTRUCTION);
+  assert(fix.includes("NEVER flat 2D") && fix.includes("real photograph"));
+  assert(redrawFixInstruction([STYLE_PROBLEM]).includes("Pixar/Disney animated feature film"));
+});
+
+Deno.test("avatar style stories: a cartoonish or pasted-in hero is a face problem with a named fix", async () => {
+  const { isLookOnly, lookProblemsFrom } = await import("./look-check.ts");
+  const p = redrawProblemsFrom({ pixar_3d: true, avatar_style_match: false, avatar_blend: false }, { hasFace: true });
+  assertEquals(p, ["avatar style", "avatar blend"]);
+  assert(isLookOnly(p));
+  assertEquals(lookProblemsFrom({ avatar_style_match: false }), ["avatar style"]);
+  const fix = redrawFixInstruction(p, { avatarStyle: true });
+  assert(fix.includes("more cartoonish") && fix.includes("pasted in"));
+});

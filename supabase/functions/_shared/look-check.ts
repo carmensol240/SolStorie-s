@@ -1,9 +1,13 @@
 // Detailed comparison of a page against page 1: eyes, hair tone, drawing style, outfit, chest emblem.
 // A page failing only these gets one redraw; if it still fails, the closer picture is kept and the
 // story becomes needs_attention (the saved log's identity_check starts with LOOK_KEPT_PREFIX).
-export const LOOK_PROBLEMS = ["eye color", "hair tone", "render style", "outfit vs page 1", "emblem", "avatar face", "avatar age", "avatar hair", "avatar features"] as const;
+export const LOOK_PROBLEMS = ["eye color", "hair tone", "render style", "outfit vs page 1", "emblem", "avatar face", "avatar age", "avatar hair", "avatar features", "avatar style", "avatar blend"] as const;
 export const LOOK_KEPT_PREFIX = "look mismatch kept";
 export const MAX_LOOK_REDRAWS = 1;
+
+/** Fix lines for the avatar-style answers (AVATAR_STYLE_CUTOFF stories). */
+export const AVATAR_STYLE_FACE_FIX = "render the main child in the same 3D style as the face reference picture — same level of realism, proportions, eye size and head size; do not make the child more cartoonish than the reference";
+export const AVATAR_BLEND_FIX = "light the main child with the scene's own light, shadows and color grading (contact shadows, matching light direction) so the child belongs in the picture and does not look pasted in";
 
 export function lookProblemsFrom(p: Record<string, unknown>): string[] {
   const out: string[] = [];
@@ -17,6 +21,9 @@ export function lookProblemsFrom(p: Record<string, unknown>): string[] {
   if (p.avatar_age_match === false) out.push("avatar age");
   if (p.avatar_hair_match === false) out.push("avatar hair");
   if (p.avatar_features_match === false) out.push("avatar features");
+  // AVATAR_STYLE_CUTOFF stories only (asked only there): hero in the avatar's render style, blended into the scene.
+  if (p.avatar_style_match === false) out.push("avatar style");
+  if (p.avatar_blend === false) out.push("avatar blend");
   return out;
 }
 
@@ -24,17 +31,21 @@ export function isLookOnly(problems: string[]): boolean {
   return problems.length > 0 && problems.every((x) => (LOOK_PROBLEMS as readonly string[]).includes(x));
 }
 
-export function lookFixInstruction(problems: string[], differences: string, eyeColor?: string, avatar?: { age?: string; hair?: string }): string {
+export function lookFixInstruction(problems: string[], differences: string, eyeColor?: string, avatar?: { age?: string; hair?: string; avatarStyle?: boolean }): string {
   const parts: string[] = [];
   if (problems.includes("eye color")) parts.push(`eyes must be exactly ${eyeColor || "the same color as page 1"}, same as page 1`);
   if (problems.includes("hair tone")) parts.push("hair must be the exact same tone and length as page 1, not lighter or darker");
-  if (problems.includes("render style")) parts.push("use the exact same polished Pixar-like 3D render as page 1 (same lighting, skin shading, proportions) — never flat 2D, painterly or a different animation style");
+  if (problems.includes("render style")) parts.push(avatar?.avatarStyle
+    ? "use the exact same polished 3D CGI render as page 1 (same lighting, skin shading, proportions; the main child in the face reference picture's render style) — never flat 2D, painterly or a different animation style"
+    : "use the exact same polished Pixar-like 3D render as page 1 (same lighting, skin shading, proportions) — never flat 2D, painterly or a different animation style");
   if (problems.includes("outfit vs page 1")) parts.push("the hero wears exactly the same clothes and colors as on page 1");
   if (problems.includes("emblem")) parts.push("the chest emblem must be identical to page 1 in shape and color (if page 1 has no emblem, draw none)");
   if (problems.includes("avatar face")) parts.push("the child's face must match the face reference picture exactly");
   if (problems.includes("avatar age")) parts.push(`the child must look exactly ${avatar?.age ? `${avatar.age} years old` : "the age of the face reference picture"}`);
   if (problems.includes("avatar features")) parts.push("keep every distinguishing feature of the child in the face reference picture (face shape, eyebrows, hair cut and direction, ears, nose, marks)");
   if (problems.includes("avatar hair")) parts.push(`hair must be exactly ${avatar?.hair || "the shade in the face reference picture"}, as in the face reference picture`);
+  if (problems.includes("avatar style")) parts.push(AVATAR_STYLE_FACE_FIX);
+  if (problems.includes("avatar blend")) parts.push(AVATAR_BLEND_FIX);
   return `\n\nCONSISTENCY FIX (previous attempt differed from page 1${differences ? `: ${differences}` : ""}): ${parts.join("; ")}.`;
 }
 

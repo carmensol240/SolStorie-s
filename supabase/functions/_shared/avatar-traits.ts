@@ -42,6 +42,17 @@ export function usesLikeness(createdAt: string | null | undefined): boolean {
   return !Number.isNaN(t) && t >= Date.parse(LIKENESS_CUTOFF);
 }
 
+// Stories created from AVATAR_STYLE_CUTOFF whose face reference is the child's avatar: the hero is drawn
+// in the avatar's own 3D render style while the SolStories cast keeps its official Pixar look (one shared
+// world and lighting). Decided by the story's date only — saved hero_traits never switch it on, so older
+// stories and their redraws stay exactly as before.
+export const AVATAR_STYLE_CUTOFF = "2026-11-12T08:00:00Z";
+export function usesAvatarStyle(createdAt: string | null | undefined, faceIsAvatar: boolean): boolean {
+  if (!faceIsAvatar || !createdAt) return false;
+  const t = Date.parse(createdAt);
+  return !Number.isNaN(t) && t >= Date.parse(AVATAR_STYLE_CUTOFF);
+}
+
 /** Cleans the model's feature list: 3–8 short English phrases, else []. */
 export function cleanFeatures(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];

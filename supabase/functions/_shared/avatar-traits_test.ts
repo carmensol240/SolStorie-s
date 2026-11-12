@@ -52,3 +52,14 @@ Deno.test("saved hero_traits switch on features, close framing and avatar tones 
   assertEquals(likenessFlags("2026-11-12T08:00:00Z", null), { traitsOn: true, likenessOn: true });
   assertEquals(likenessFlags("2026-11-11T20:00:00Z", null), { traitsOn: true, likenessOn: false });
 });
+
+Deno.test("avatar render style: only stories created from the new cutoff, only with the avatar as face picture", async () => {
+  const { usesAvatarStyle, AVATAR_STYLE_CUTOFF } = await import("./avatar-traits.ts");
+  const after = new Date(Date.parse(AVATAR_STYLE_CUTOFF) + 60_000).toISOString();
+  const before = new Date(Date.parse(AVATAR_STYLE_CUTOFF) - 60_000).toISOString();
+  if (!usesAvatarStyle(after, true)) throw new Error("new story with avatar should use avatar style");
+  if (usesAvatarStyle(before, true)) throw new Error("older story must stay unchanged");
+  if (usesAvatarStyle("2026-11-11T16:41:00Z", true)) throw new Error("Uriel's story must stay unchanged");
+  if (usesAvatarStyle(after, false)) throw new Error("a real photo is never the style source");
+  if (usesAvatarStyle(null, true)) throw new Error("no date = unchanged");
+});

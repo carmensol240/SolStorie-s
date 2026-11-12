@@ -9,10 +9,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { isLookOnly, lookFixInstruction, lookProblemsFrom, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
-import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, AVATAR_LIKENESS_QUESTION, likenessFlags, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, type AvatarTraits } from "../_shared/avatar-traits.ts";
+import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, AVATAR_LIKENESS_QUESTION, likenessFlags, usesAvatarStyle, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, type AvatarTraits } from "../_shared/avatar-traits.ts";
 import { coverProblemsFrom, keptTryAfterFailedRedraws } from "../_shared/cover-check.ts";
 import { buildIllustrationPrompt, referenceContent, referenceOrdinals, faceShare, type PromptHero, type PromptRefs } from "../_shared/illustration-prompt.ts";
-import { PIXAR_3D_QUESTION, STYLE_PROBLEM, hasStyleProblem, redrawFixInstruction, styleProblemsFrom, checkRedrawPicture, shapeProblems, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
+import { PIXAR_3D_QUESTION, styleQuestions, avatarStyleQuestions, STYLE_PROBLEM, hasStyleProblem, redrawFixInstruction, styleProblemsFrom, checkRedrawPicture, shapeProblems, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
 import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
 import { LOOK_PROBLEMS, LOOK_KEPT_PREFIX } from "../_shared/look-check.ts";
 import { formatRule, backupSizeFor, SHAPE_PROBLEM } from "../_shared/illustration-format.ts";
@@ -157,7 +157,7 @@ async function checkIdentityMatch(
   pageOneImageUrl: string | null,
   apiKey: string,
   _strict = false,
-  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; cover?: boolean; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string; features?: string[] } | null } = {},
+  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; cover?: boolean; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string; features?: string[] } | null; avatarStyle?: boolean } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   if (opts.cover) return await checkCoverAgainstAvatar(pageImageUrl, opts.avatarUrl ?? null, apiKey, opts);
   // The check is mandatory: asked a second time when the first call cannot run.
@@ -169,17 +169,21 @@ async function checkIdentityMatchOnce(
   pageImageUrl: string,
   pageOneImageUrl: string | null,
   apiKey: string,
-  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string; features?: string[] } | null } = {},
+  opts: { outfit?: string; allowText?: boolean; eyeColor?: string; hair?: string; avatarUrl?: string | null; avatarCheck?: { age: string; hair: string; features?: string[] } | null; avatarStyle?: boolean } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   try {
     const hasRef = !!pageOneImageUrl;
     const img = hasRef ? "Image B" : "The image";
     const avatarOn = !!(opts.avatarCheck && opts.avatarUrl);
+    // AVATAR_STYLE_CUTOFF stories: the hero keeps the avatar's own 3D render style (cast stays Pixar).
+    const avatarStyle = !!opts.avatarStyle && avatarOn;
     const text =
       (hasRef ? "Image A is page 1 of a children's book. Image B is another page of the SAME book. " : "The image is a page of a children's book. ") +
       "Answer each question about " + img + ":\n" +
       (hasRef ? "- same_child: does B show the same main child as A (hair color/length/texture, face, apparent age)? Ignore pose and background.\n" +
-        "- same_style: is B the same polished Pixar-like 3D CGI render style as A (not flat 2D, not simplified cartoon, not painterly, not photo)?\n" +
+        (avatarStyle
+          ? "- same_style: is B the same polished 3D CGI render style as A (main child rendered the same way, not flat 2D, not simplified cartoon, not painterly, not photo)?\n"
+          : "- same_style: is B the same polished Pixar-like 3D CGI render style as A (not flat 2D, not simplified cartoon, not painterly, not photo)?\n") +
         "- copied_composition: does B nearly copy A's composition (same pose, same camera angle and same layout)?\n" +
         "Be strict: compare the main child in B to A detail by detail and answer false whenever in doubt.\n" +
         `- eye_color_match: are the main child's eyes in B the same color as in A${opts.eyeColor ? ` (expected: ${opts.eyeColor})` : ""}? false if e.g. blue vs brown.\n` +
@@ -187,8 +191,8 @@ async function checkIdentityMatchOnce(
         "- render_style_match: is B drawn in exactly the same 3D render look as A (same lighting, skin shading, proportions)? false for flat 2D, painterly, watercolor or a noticeably different 3D/animation style.\n" +
         "- outfit_match_page1: does the main child wear the same clothes with the same colors as in A? Ignore clothes hidden by framing.\n" +
         "- emblem_match: is any emblem/logo on the child's chest the same shape and color as in A (true if neither has one, or it is not visible in B)?\n" : "") +
-      PIXAR_3D_QUESTION +
-      "- photo_realistic: does it look like a real photograph or photorealistic image of real people, instead of a stylized Pixar-like 3D animated render?\n" +
+      (avatarStyle ? styleQuestions(true) : PIXAR_3D_QUESTION +
+      "- photo_realistic: does it look like a real photograph or photorealistic image of real people, instead of a stylized Pixar-like 3D animated render?\n") +
       "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)? false only if the main child is seen only from behind or the face is hidden/not shown.\n" +
       "- hero_twice: does the main child appear twice, or is there a second child who looks almost identical to the main child (a twin/clone)? Different-looking friends do NOT count.\n" +
       "- has_text: are there clearly readable written letters or words drawn in the picture (captions, signs, labels, speech bubbles)? Toy blocks, logos, emblems, patterns and textures are NOT text. Answer false unless you can actually read letters.\n" +
@@ -196,9 +200,10 @@ async function checkIdentityMatchOnce(
         "- avatar_face_match: same face as the reference (face shape, nose, eyes)? false if clearly a different child.\n" +
         `- avatar_age_match: does the child look about ${opts.avatarCheck!.age} years old, same age as the reference? false if clearly younger or older.\n` +
         `- avatar_hair_match: is the hair the same shade as the reference${opts.avatarCheck!.hair ? ` (expected: ${opts.avatarCheck!.hair})` : ""}? false if clearly lighter or darker.\n` +
-        (opts.avatarCheck!.features?.length ? `- avatar_features_match: does the main child keep most of these features of the reference: ${opts.avatarCheck!.features.join("; ")}? false if two or more are clearly missing or different.\n` : "") : "") +
+        (opts.avatarCheck!.features?.length ? `- avatar_features_match: does the main child keep most of these features of the reference: ${opts.avatarCheck!.features.join("; ")}? false if two or more are clearly missing or different.\n` : "") +
+        (avatarStyle ? avatarStyleQuestions(img, "the reference") : "") : "") +
       (opts.outfit ? `- outfit_ok: is the main child wearing: "${opts.outfit}" (no cape or costume unless listed)?\n` : "") +
-      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
+      'Answer strict JSON only: {"same_child":bool,"same_style":bool,"copied_composition":bool,"pixar_3d":bool,"photo_realistic":bool,"hero_face_visible":bool,"hero_twice":bool,"has_text":bool,"outfit_ok":bool,"eye_color_match":bool,"hair_tone_match":bool,"render_style_match":bool,"outfit_match_page1":bool,"emblem_match":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,"avatar_style_match":bool,"avatar_blend":bool,"differences":"<what differs from A, max 15 words>","reason":"<max 12 words>"}';
     const content: any[] = [{ type: "text", text }];
     if (pageOneImageUrl) content.push({ type: "image_url", image_url: { url: pageOneImageUrl } });
     content.push({ type: "image_url", image_url: { url: pageImageUrl } });
@@ -220,6 +225,7 @@ async function checkIdentityMatchOnce(
     if (start === -1 || end === -1) return null;
     const p = JSON.parse(jsonText.slice(start, end + 1));
     if (!opts.avatarCheck?.features?.length) delete p.avatar_features_match;
+    if (!avatarStyle) { delete p.avatar_style_match; delete p.avatar_blend; }
     const problems: string[] = [];
     if (hasRef && p.same_child === false) problems.push("different child");
     if (hasRef && p.same_style === false) problems.push("different style");
@@ -247,7 +253,7 @@ async function checkCoverAgainstAvatar(
   pageImageUrl: string,
   avatarUrl: string | null,
   apiKey: string,
-  opts: { allowText?: boolean; eyeColor?: string; hair?: string } = {},
+  opts: { allowText?: boolean; eyeColor?: string; hair?: string; avatarStyle?: boolean } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   return (await checkCoverAgainstAvatarOnce(pageImageUrl, avatarUrl, apiKey, opts))
     ?? (await checkCoverAgainstAvatarOnce(pageImageUrl, avatarUrl, apiKey, opts));
@@ -257,10 +263,11 @@ async function checkCoverAgainstAvatarOnce(
   pageImageUrl: string,
   avatarUrl: string | null,
   apiKey: string,
-  opts: { allowText?: boolean; eyeColor?: string; hair?: string } = {},
+  opts: { allowText?: boolean; eyeColor?: string; hair?: string; avatarStyle?: boolean } = {},
 ): Promise<{ match: boolean; reason: string; problems: string[]; differences: string } | null> {
   try {
     const hasAvatar = !!avatarUrl;
+    const avatarStyle = !!opts.avatarStyle && hasAvatar;
     const img = hasAvatar ? "Image B" : "The image";
     const text =
       (hasAvatar
@@ -272,9 +279,12 @@ async function checkCoverAgainstAvatarOnce(
           `- hair_tone_match: is the hair the same color/tone and length as in A${opts.hair ? ` (expected: ${opts.hair})` : ""}? false only if clearly different.\n` +
           `- eye_color_match: are the eyes the same color as in A${opts.eyeColor ? ` (expected: ${opts.eyeColor})` : ""}? false only if clearly different (e.g. blue vs brown).\n`
         : "") +
-      "- render_style_match: is " + img + " a polished Pixar-like 3D CGI render? false for flat 2D, painterly, watercolor or a photo.\n" +
-      PIXAR_3D_QUESTION +
-      "- photo_realistic: does it look like a real photograph or photorealistic image of real people?\n" +
+      (avatarStyle
+        ? "- render_style_match: is the main child in B rendered in the same 3D CGI style as in A (same level of realism and proportions, not more cartoonish)? false for flat 2D, painterly, watercolor or a photo.\n" +
+          styleQuestions(true)
+        : "- render_style_match: is " + img + " a polished Pixar-like 3D CGI render? false for flat 2D, painterly, watercolor or a photo.\n" +
+          PIXAR_3D_QUESTION +
+          "- photo_realistic: does it look like a real photograph or photorealistic image of real people?\n") +
       "- hero_face_visible: is the main child's face visible (front, three-quarter or side profile all count)?\n" +
       "- hero_twice: does the main child appear twice, or is there a near-identical twin/clone? Different-looking friends do NOT count.\n" +
       "- has_text: are there clearly readable written letters or words drawn in the picture? Toy blocks, logos, emblems, patterns are NOT text.\n" +
@@ -1592,6 +1602,8 @@ serve(async (req) => {
     let storyFormat: string | null = null;
     let savedFeatures: string[] = [];
     let avatarTraitsOn = false;
+    // New stories (AVATAR_STYLE_CUTOFF) with the avatar as face picture: hero in the avatar's own render style.
+    let avatarStyleOn = false;
     let avatarTraits: AvatarTraits | null = null;
     // New stories whose cover is the avatar copy: page 1 is a normal scene (no cover safe zone).
     let avatarCoverStory = false;
@@ -1608,6 +1620,7 @@ serve(async (req) => {
       avatarCoverStory = isAvatarCoverUrl((so as any)?.cover_url);
       consistentFraming = usesConsistentFraming((so as any)?.created_at);
       avatarTraitsOn = lf.traitsOn;
+      avatarStyleOn = usesAvatarStyle((so as any)?.created_at, !!childAvatarUrl || childHasSavedAvatar);
       const sh = normalizeHairShade((so as any)?.hero_hair_shade);
       if (sh && (so as any)?.hero_eye_color && (so as any)?.hero_skin_tone) {
         avatarTraits = { hair: sh, eyes: (so as any).hero_eye_color, skin: (so as any).hero_skin_tone };
@@ -1901,6 +1914,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         ].filter(Boolean).join(", "),
         traits: hasFace && avatarTraitsOn ? avatarTraits : null,
         features: hasFace ? heroFeatures : null,
+        avatarStyle: hasFace && avatarStyleOn,
       };
       const scene = sceneParts.filter(Boolean).join("\n\n");
       const pageRules = [castBlock, pageCastRule(castText, childName), militaryLock];
@@ -2035,7 +2049,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
           const verdict = withShape(base64Image, await checkIdentityMatch(publicPageUrl, pageRef, LOVABLE_API_KEY, isBackup, {
             outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
             eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
-            cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck: pageAvatarCheck,
+            cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck: pageAvatarCheck, avatarStyle: avatarStyleOn,
           }));
           if (!verdict && hadExisting) {
             // Redraw that could not be checked (asked twice): the previous picture stays.
@@ -2091,9 +2105,9 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               const prevTry = tries[tries.length - 1];
               const lookList = prevTry.problems.filter((x) => (LOOK_PROBLEMS as readonly string[]).includes(x));
               const fix = [
-                redrawFixInstruction(prevTry.problems, { age: pageAvatarCheck?.age, hair: avatarTraits?.hair, features: heroFeatures, format: storyFormat }),
+                redrawFixInstruction(prevTry.problems, { age: pageAvatarCheck?.age, hair: avatarTraits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn }),
                 !coverCheck && lookList.length && !hasStyleProblem(prevTry.problems)
-                  ? lookFixInstruction(lookList, prevTry.reason, characterProfile?.eyeColor, { age: realAge, hair: avatarTraits?.hair }).trim()
+                  ? lookFixInstruction(lookList, prevTry.reason, characterProfile?.eyeColor, { age: realAge, hair: avatarTraits?.hair, avatarStyle: avatarStyleOn }).trim()
                   : "",
               ].filter(Boolean).join("\n");
               if (hasStyleProblem(prevTry.problems)) console.warn(`[STYLE-CHECK] story=${storyId} page=${page.page_number} not 3D Pixar — redraw ${r} with style fix`);
@@ -2112,7 +2126,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
               const v2 = retryPublic ? withShape(retryImage, await checkIdentityMatch(retryPublic, pageRef, LOVABLE_API_KEY, false, {
                 outfit: parentOutfitEn ? storyOutfit : undefined, allowText: !!isLearningTopic,
                 eyeColor: characterProfile?.eyeColor, hair: characterProfile?.hairDescription,
-                cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck: pageAvatarCheck,
+                cover: coverCheck, avatarUrl: childPhotoSignedUrl, avatarCheck: pageAvatarCheck, avatarStyle: avatarStyleOn,
               })) : null;
               if (!v2) {
                 // The check could not run even after a second ask: count it as a failed try.
@@ -2275,11 +2289,11 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             candidate = await generateIllustrationBackup((refs) => prompt2For(refs), { page1: coverReferenceUrl, face: childPhotoSignedUrl, leo: withLeo }, storyId, page.page_number);
           }
           if (!candidate) break;
-          const v = await checkRedrawPicture(candidate, childPhotoSignedUrl, LOVABLE_API_KEY, { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair, allowText: !!isLearningTopic, features: heroFeatures, format: storyFormat });
+          const v = await checkRedrawPicture(candidate, childPhotoSignedUrl, LOVABLE_API_KEY, { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair, allowText: !!isLearningTopic, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn });
           if (v && v.problems.length === 0) secondImage = candidate;
           else {
             console.warn(`[Page ${page.page_number}] second picture failed check (${v?.reason || "check unavailable"})`);
-            secondFix = redrawFixInstruction(v?.problems || [STYLE_PROBLEM], { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair, features: heroFeatures, format: storyFormat });
+            secondFix = redrawFixInstruction(v?.problems || [STYLE_PROBLEM], { age: redrawAvatarCheck?.age, hair: avatarTraits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn });
           }
         }
 

@@ -56,3 +56,35 @@ Deno.test("likeness: avatar analysis keeps 3-8 clean features", async () => {
   const t = parseAvatarTraits('{"hair_shade":"near-black very dark brown","eye_color":"brown","skin_tone":"fair","distinct_features":["wide face","thick straight eyebrows","short cropped sides","small nose"]}');
   if (t?.features?.length !== 4 || t.hair !== "near-black very dark brown") throw new Error(JSON.stringify(t));
 });
+
+Deno.test("avatar style (new stories): the hero keeps the avatar's render style, the cast stays Pixar, one shared world", async () => {
+  const { AVATAR_STYLE_BLOCK } = await import("./illustration-prompt.ts");
+  const p = buildIllustrationPrompt({ refs: { face: true, canon: true, canonPage: 1, leo: true }, hero: { ...hero, avatarStyle: true }, scene });
+  assert(p.startsWith("FACE — THE MOST IMPORTANT RULE. The FIRST image is the child's face reference picture and the ONLY source"));
+  const face = p.slice(0, p.indexOf("\n\n"));
+  assert(face.includes("drawn in the SAME 3D render style as the FIRST image"));
+  assert(!face.includes("drawn as the same Pixar-style 3D character"));
+  assert(p.includes(AVATAR_STYLE_BLOCK));
+  assert(AVATAR_STYLE_BLOCK.includes("keep their own official Pixar look"));
+  assert(AVATAR_STYLE_BLOCK.includes("ONE SHARED WORLD"));
+  assert(AVATAR_STYLE_BLOCK.includes("never a photograph, never 2D"));
+  assert(p.includes("Pixar 3D animation style"));
+  assert(p.includes("Do NOT copy the face, hair or age from it"));
+  const neg = p.slice(p.indexOf("NEGATIVE:"));
+  assert(neg.includes("photograph") && neg.includes("photorealistic") && neg.includes("chibi"));
+  assert(!/(^|, |: )realistic,/.test(neg) && !neg.includes("semi-realistic") && !neg.includes("hyper-realistic"));
+});
+
+Deno.test("avatar style off (older stories and redraws) leaves the instruction exactly as before", () => {
+  const refs = { face: true, canon: true, canonPage: 1, leo: false };
+  assertEquals(buildIllustrationPrompt({ refs, hero: { ...hero, avatarStyle: false }, scene }), buildIllustrationPrompt({ refs, hero, scene }));
+  const p = buildIllustrationPrompt({ refs, hero, scene });
+  assert(p.includes("drawn as the same Pixar-style 3D character"));
+  assert(!p.includes("MAIN CHILD RENDER STYLE"));
+  assert(p.slice(p.indexOf("NEGATIVE:")).includes("semi-realistic"));
+});
+
+Deno.test("avatar style never applies without a face picture", () => {
+  const refs = { face: false, canon: true, canonPage: 1, leo: false };
+  assertEquals(buildIllustrationPrompt({ refs, hero: { ...hero, avatarStyle: true }, scene }), buildIllustrationPrompt({ refs, hero, scene }));
+});

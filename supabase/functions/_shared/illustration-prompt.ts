@@ -3,6 +3,7 @@
 // buildIllustrationPrompt. Order of the request:
 //   1. FACE — the child's face reference picture is the ONLY source for the face (strong paragraph first).
 //   2. Page reference (usually page 1) — only clothes and 3D render style, never the face.
+//   (AVATAR_STYLE_CUTOFF stories: the hero keeps the avatar's own render style — AVATAR_STYLE_BLOCK.)
 //   3. STYLE (Pixar 3D), 4. SCENE, 5. one short RULES block, 6. fix after a failed check, 7. NEGATIVE.
 // Reference pictures are always attached in the same order: face, page reference, Leo.
 import { PIXAR_STYLE, leoRefNote, negativePromptFor } from "./style-config.ts";
@@ -32,6 +33,8 @@ export interface PromptHero {
   traits?: AvatarTraits | null;
   /** Distinguishing features read from the avatar (LIKENESS_CUTOFF stories). */
   features?: string[] | null;
+  /** AVATAR_STYLE_CUTOFF stories with the avatar as face picture: the hero keeps the avatar's own 3D render style. */
+  avatarStyle?: boolean;
 }
 
 export interface IllustrationPromptInput {
@@ -70,13 +73,16 @@ export function faceBlock(n: number, hero: PromptHero): string {
   const age = ageWords(hero.ageText);
   const t = hero.traits;
   return `FACE — THE MOST IMPORTANT RULE. ${cap(img)} is the child's face reference picture and the ONLY source for the main child's face.
-The main child must be instantly recognizable as the exact child in ${img}, drawn as the same Pixar-style 3D character. Copy it feature by feature: face shape and jawline, cheeks and chin, eye shape, size, spacing and color, eyebrows, nose, mouth and smile, ears, skin tone, freckles or marks, hair color, hair length, hairline, parting and hairstyle${age ? `, and the age: ${age}` : ""}.${t ? ` As seen in ${img}: hair ${t.hair}, eyes ${t.eyes}, skin ${t.skin}.` : ""}${featuresLine(hero.features) ? ` ${featuresLine(hero.features)}` : ""}
+The main child must be instantly recognizable as the exact child in ${img}, ${hero.avatarStyle ? `drawn in the SAME 3D render style as ${img} — same level of realism, proportions, eye size, nose, skin and hair rendering — never turned into a more cartoonish character` : "drawn as the same Pixar-style 3D character"}. Copy it feature by feature: face shape and jawline, cheeks and chin, eye shape, size, spacing and color, eyebrows, nose, mouth and smile, ears, skin tone, freckles or marks, hair color, hair length, hairline, parting and hairstyle${age ? `, and the age: ${age}` : ""}.${t ? ` As seen in ${img}: hair ${t.hair}, eyes ${t.eyes}, skin ${t.skin}.` : ""}${featuresLine(hero.features) ? ` ${featuresLine(hero.features)}` : ""}
 Do not beautify, idealize, slim, age up or down, or make the face generic; do not restyle the hair. If anything else in this request (scene text, rules or another image) disagrees about the face, hair, eyes, skin or age, ${img} wins. Only the clothes, pose, expression and scene change.`;
 }
 
 /** The page reference: with a face picture it carries only clothes + render style. */
-export function canonBlock(n: number, page: number, hasFace: boolean): string {
+export function canonBlock(n: number, page: number, hasFace: boolean, avatarStyle = false): string {
   const img = `the ${ORD[n]} image`;
+  if (hasFace && avatarStyle) {
+    return `PAGE REFERENCE: ${cap(img)} is page ${page} of this same book. Use it ONLY for the clothes (same garments and colors) and the book's lighting and world look. Do NOT copy the face, hair or age from it — those, and the main child's render style, come only from the face reference picture. Do not copy its composition, pose, camera angle or background.`;
+  }
   if (hasFace) {
     return `PAGE REFERENCE: ${cap(img)} is page ${page} of this same book. Use it ONLY for the clothes (same garments and colors) and the polished 3D render style (lighting, skin shading, materials). Do NOT copy the face, hair or age from it — those come only from the face reference picture. Do not copy its composition, pose, camera angle or background.`;
   }
@@ -105,18 +111,35 @@ export function rulesBlock(hero: PromptHero, hasFace: boolean, extra: string[] =
   return `RULES (all apply):\n${lines.join("\n")}${extra.filter(Boolean).length ? `\n\n${extra.filter(Boolean).join("\n\n")}` : ""}`;
 }
 
+/** Two styles, one world (AVATAR_STYLE_CUTOFF stories): the hero keeps the avatar's render style, the cast its Pixar look. */
+export const AVATAR_STYLE_BLOCK =
+  "MAIN CHILD RENDER STYLE: the main child is rendered in the same 3D CGI style as the face reference picture (its level of realism, proportions, eye size, head size, skin and hair rendering) — never redesigned into a more cartoonish Pixar character with bigger eyes, a bigger head or simplified features. " +
+  "Companions from the story (Sol, Zoe, Leo, Mia, Ben) keep their own official Pixar look. " +
+  "ONE SHARED WORLD: the same light direction, color grading, shadows, depth and camera lens for every character and the background, with matching light and contact shadows on the main child, so the child belongs in the scene and never looks cut out or pasted in. " +
+  "The whole picture stays one 3D CGI animated-film frame — never a photograph, never 2D.";
+
+const AVATAR_STYLE_NEGATIVE_DROP = new Set(["realistic", "semi-realistic", "hyper-realistic"]);
+/** Negative words without the ones that fight the avatar's lifelike 3D look ("photograph"/"photorealistic" stay). */
+export function avatarStyleNegative(negative: string): string {
+  return negative.split(", ").filter((w) => !AVATAR_STYLE_NEGATIVE_DROP.has(w.trim())).join(", ");
+}
+
 export function buildIllustrationPrompt(input: IllustrationPromptInput): string {
   const ord = referenceOrdinals(input.refs);
+  const avatarStyle = !!ord.face && !!input.hero.avatarStyle;
+  const hero = avatarStyle ? input.hero : { ...input.hero, avatarStyle: false };
   const parts: string[] = [];
-  if (ord.face) parts.push(faceBlock(ord.face, input.hero));
-  if (ord.canon) parts.push(canonBlock(ord.canon, input.refs.canonPage ?? 1, !!ord.face));
+  if (ord.face) parts.push(faceBlock(ord.face, hero));
+  if (ord.canon) parts.push(canonBlock(ord.canon, input.refs.canonPage ?? 1, !!ord.face, avatarStyle));
   if (!ord.face && !ord.canon) parts.push("NO REFERENCE PICTURE: create the main child exactly from the RULES description below and keep this look.");
-  parts.push(`STYLE: ${PIXAR_STYLE}`);
+  parts.push(avatarStyle ? `STYLE (scene and companions): ${PIXAR_STYLE}` : `STYLE: ${PIXAR_STYLE}`);
+  if (avatarStyle) parts.push(AVATAR_STYLE_BLOCK);
   parts.push(input.scene.trim());
-  parts.push(rulesBlock(input.hero, !!ord.face, input.rules));
+  parts.push(rulesBlock(hero, !!ord.face, input.rules));
   if (input.fix?.trim()) parts.push(input.fix.trim());
   if (input.formatRule?.trim()) parts.push(input.formatRule.trim());
-  parts.push(`NEGATIVE: ${negativePromptFor(input.hero.gender)}`);
+  const negative = negativePromptFor(hero.gender);
+  parts.push(`NEGATIVE: ${avatarStyle ? avatarStyleNegative(negative) : negative}`);
   return parts.join("\n\n");
 }
 

@@ -8,7 +8,7 @@ import { checkRedrawPicture, redrawDecision, redrawFixInstruction, MAX_STYLE_RED
 import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
 import { pickFramingAngle, framingComposition, usesConsistentFraming } from "../_shared/camera-framing.ts";
 import { reserveRedraws, releaseRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
-import { avatarWinsRule, likenessFlags, normalizeHairShade, realAgeText } from "../_shared/avatar-traits.ts";
+import { avatarWinsRule, likenessFlags, usesAvatarStyle, normalizeHairShade, realAgeText } from "../_shared/avatar-traits.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
@@ -364,11 +364,14 @@ serve(async (req) => {
       ? { hair: sh, eyes: (story as any).hero_eye_color, skin: (story as any).hero_skin_tone } : null;
     const heroFeatures: string[] = likenessOn && Array.isArray((story as any).hero_traits) ? (story as any).hero_traits : [];
     const storyFormat: string | null = (story as any).illustration_format ?? null;
+    // New stories only (date-based, never hero_traits): the hero keeps the avatar's own 3D render style.
+    const avatarStyleOn = usesAvatarStyle((story as any).created_at, !!childPhoto && (photoSource === "avatar" || photoSource === "profile_avatar"));
     const hero: PromptHero = {
       gender: (story as any).child_gender, ageText, outfit, kippah: kp.kippah, kippahColor: kp.color,
       lookText: childPhoto ? "" : hairToEnglish(ap),
       traits: childPhoto ? traits : null,
       features: childPhoto ? heroFeatures : null,
+      avatarStyle: avatarStyleOn,
     };
     const visualDescription = customPrompt || page.illustration_prompt || `A cheerful children's book illustration for page ${page.page_number}`;
     // Family member in the reserves/army: fixed IDF uniform, never weapons or gear.
@@ -489,7 +492,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     // Time budget: the browser waits for this answer (~150 s platform cut-off).
     const REDRAW_START_LIMIT_MS = 85_000;
     const HARD_LIMIT_MS = 140_000;
-    const checkOpts = { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, allowText: String(story.topic || "").startsWith("letter-") || String(story.topic || "").startsWith("number-") };
+    const checkOpts = { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn, allowText: String(story.topic || "").startsWith("letter-") || String(story.topic || "").startsWith("number-") };
     const tries: { image: string; model: string; problems: string[]; reason: string }[] = [];
     let fix = "";
     for (let round = 0; round <= MAX_STYLE_REDRAWS; round++) {
@@ -505,7 +508,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       tries.push({ image: g.image, model: g.model, problems, reason: v?.reason || "check unavailable" });
       console.log(`[STYLE-CHECK] story=${storyId} page=${page.page_number} try ${round + 1}: ${problems.length ? problems.join(", ") : "pass"}`);
       if (!problems.length) break;
-      fix = redrawFixInstruction(problems, { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat });
+      fix = redrawFixInstruction(problems, { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn });
     }
 
     const durationMs = Date.now() - genStart;
