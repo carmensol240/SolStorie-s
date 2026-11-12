@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   AVATAR_CLOTHES_LINE, AVATAR_LINE, SHORT_PROMPT_CUTOFF, buildShortIllustrationPrompt, clothesCheckQuestions,
-  clothesFixInstruction, clothesProblemsFrom, mayRequestClothes, parseOutfitRequest, shortReferenceContent, usesShortPrompt,
+  clothesFixInstruction, clothesProblemsFrom, mayRequestClothes, parseOutfitRequest, shortReferenceContent, stripHeroClothes, usesShortPrompt,
 } from "./short-prompt.ts";
 import { redrawFixInstruction } from "./style-check.ts";
 import { isLookOnly, lookFixInstruction } from "./look-check.ts";
@@ -82,4 +82,33 @@ Deno.test("free-text clothes request: pre-filter and clean answer", () => {
   assertEquals(parseOutfitRequest('```json\n{"outfit":"a superhero costume with a red cape"}\n```'), "a superhero costume with a red cape");
   assertEquals(parseOutfitRequest('{"outfit":""}'), null);
   assertEquals(parseOutfitRequest("not json"), null);
+});
+
+// Real scenes the writer produced for Ari (1258dee1) and Sol (c4532152) without any parent clothes request.
+const ariScene = "Ari Meir with loose blond hair in his red superhero costume and a small kippah nestled happily on the soft couch between mom Rotem and dad Bar.";
+const ariScene1 = "Ari Meir, a cute toddler boy, wearing a red superhero costume with a tiny cape and a small kippah on his head, stands proudly.";
+const solScene = "Sol is wearing a bright yellow t-shirt with a small smiling sun print and soft blue cotton pants. Sol is sitting on a fluffy green rug.";
+const solScene5 = "Sol, wearing her bright yellow t-shirt with a small smiling sun print and soft blue cotton pants, stands happily near the open front door.";
+
+Deno.test("no parent clothes request: the writer's hero clothes never reach the drawing", () => {
+  for (const sc of [ariScene, ariScene1, solScene, solScene5]) {
+    const out = stripHeroClothes(sc);
+    for (const word of ["costume", "cape", "t-shirt", "pants", "print"]) assert(!out.toLowerCase().includes(word), `${word} in: ${out}`);
+    const p = buildShortIllustrationPrompt({ scene: `Scene: ${sc}` });
+    assert(!/costume|cape|t-shirt/i.test(p.split(AVATAR_CLOTHES_LINE)[0]), p);
+    assert(p.includes(AVATAR_CLOTHES_LINE));
+  }
+  // the action, the place, the kippah and the other characters stay
+  assert(stripHeroClothes(ariScene).includes("small kippah nestled happily on the soft couch between mom Rotem and dad Bar"));
+  assert(stripHeroClothes(solScene).includes("Sol is sitting on a fluffy green rug."));
+  assert(stripHeroClothes(solScene5).includes("stands happily near the open front door"));
+  // a scene without clothes is not touched
+  assertEquals(stripHeroClothes(scene), scene);
+  assertEquals(stripHeroClothes("Ari sits in the living room near the coat rack."), "Ari sits in the living room near the coat rack.");
+});
+
+Deno.test("with a parent clothes request (story_outfit) the scene keeps the requested costume", () => {
+  const p = buildShortIllustrationPrompt({ scene: `Scene: ${ariScene}`, requestedOutfit: "a red superhero costume with a cape" });
+  assert(p.includes("in his red superhero costume"));
+  assert(p.includes("These clothes belong ONLY to the main child."));
 });

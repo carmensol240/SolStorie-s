@@ -19,7 +19,7 @@ import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isVa
 import { normalizeEmail, decideTasteEligibility, tastePageLimit, emailTasteHash } from "../_shared/taste.ts";
 import { plannedIllustrationPages, enforceCastAndTastePictures, castPromptAddition, CAST_INTRO_HE, type CastKey } from "../_shared/story-cast-pages.ts";
 import { isHeroCastName } from "../_shared/style-config.ts";
-import { usesShortPrompt, detectRequestedOutfit } from "../_shared/short-prompt.ts";
+import { usesShortPrompt, detectRequestedOutfit, stripHeroClothes, HERO_CLOTHES_WRITER_RULE_HE, HERO_CLOTHES_WRITER_RULE_EN } from "../_shared/short-prompt.ts";
 
 async function sha256Hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -919,9 +919,13 @@ function enforceChildName(text: string, childName: string): string {
   return result;
 }
 
-function appendAppearanceParts(parts: string[], ap: Appearance) {
+/** Form clothes line for the writer; added later only for stories not drawn with the short instruction. */
+function appearanceClothesLine(ap: Appearance): string {
   const clothes = [ap.clothingType, ap.clothingColor ? `בצבע ${ap.clothingColor}` : ""].filter(Boolean).join(" ");
-  if (clothes) parts.push(`לבוש קבוע של הדמות (להוראה למאייר בלבד — לכתוב רק בשדה illustration_prompt, זהה בכל העמודים; אסור לתאר את הבגדים בטקסט הסיפור): ${clothes}`);
+  return clothes ? `לבוש קבוע של הדמות (להוראה למאייר בלבד — לכתוב רק בשדה illustration_prompt, זהה בכל העמודים; אסור לתאר את הבגדים בטקסט הסיפור): ${clothes}` : "";
+}
+
+function appendAppearanceParts(parts: string[], ap: Appearance) {
   const hair = [ap.hairColor ? `שיער ${ap.hairColor}` : "שיער", ap.hairStyle ? `בתסרוקת ${ap.hairStyle}` : ""].filter(Boolean).join(", ");
   if (ap.hairColor || ap.hairStyle) parts.push(`שיער הדמות: ${hair} — יש לשמור על מראה השיער הזה זהה בכל עמודי הסיפור.`);
 }
@@ -1354,6 +1358,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     let childPersonalization = "";
     // Fixed details from the child profile — also read for a clothes request (short-instruction stories).
     let fixedDetailsText = "";
+    let formClothesLine = "";
     if (userId) {
       try {
         const { data: childData, error: childErr } = await supabase
@@ -1368,6 +1373,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
         } else if (!childData) {
           const parts: string[] = [];
           appendAppearanceParts(parts, mergeAppearance(reqAppearance, null));
+          formClothesLine = appearanceClothesLine(mergeAppearance(reqAppearance, null));
           if (parts.length > 0) {
             childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
           }
@@ -1383,6 +1389,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
             clothingType: childData.clothing_type, clothingColor: childData.clothing_color,
           });
           appendAppearanceParts(parts, ap);
+          formClothesLine = appearanceClothesLine(ap);
           if (parts.length > 0) {
             childPersonalization = `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${parts.join("\n")}\n`;
             console.log("Using child personalization:", childPersonalization);
@@ -1416,6 +1423,16 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
         }
       }
     }
+
+    // Short-instruction stories (drawn from the avatar): the hero wears the avatar's clothes, so the writer
+    // never gets the form's clothes or a topic outfit; a parent request in the free text goes to story_outfit.
+    const shortWriter = usesShortPrompt(new Date().toISOString(), !!childAvatarUrl);
+    if (formClothesLine && !shortWriter) {
+      childPersonalization = childPersonalization
+        ? `${childPersonalization.replace(/\n$/, "")}\n${formClothesLine}\n`
+        : `\n## 🎯 פרטים אישיים על הילד/ה (שלב בסיפור בצורה טבעית!):\n${formClothesLine}\n`;
+    }
+    const topicOutfit = shortWriter ? "" : String(adventureLogic?.outfit || "");
 
     // Use avatar URL if available (for character consistency), otherwise use original photo
     const effectivePhoto = childAvatarUrl || childPhoto;
@@ -1620,8 +1637,7 @@ ${previousFullText}
 
 **עולם הסיפור:** ${adventureLogic.theme}
 **סביבה:** ${adventureLogic.background}
-**לבוש:** ${adventureLogic.outfit}
-
+${topicOutfit ? `**לבוש:** ${topicOutfit}\n` : ""}
 **הקונפליקט שצריך לשלב בעלילה:**
 ${personalityTraits}
 
@@ -1634,8 +1650,7 @@ ${personalityTraits}
 צור סיפור קלאסי על הנושא שנבחר.
 **עולם הסיפור:** ${adventureLogic.theme}
 **סביבה:** ${adventureLogic.background}
-**לבוש:** ${adventureLogic.outfit}
-`;
+${topicOutfit ? `**לבוש:** ${topicOutfit}\n` : ""}`;
     } else if (hasCustomDescription) {
       // CUSTOM DESCRIPTION ONLY: Original story based on the description
       contentFraming = `
@@ -1760,8 +1775,7 @@ ${ageLengthConfig.instruction}
 
 ${adventureLogic ? `
 ## Adventure theme:
-- Outfit: ${adventureLogic.outfit}
-- Background: ${adventureLogic.background}  
+${topicOutfit ? `- Outfit: ${topicOutfit}\n` : ""}- Background: ${adventureLogic.background}  
 - Theme: ${adventureLogic.theme}
 ` : `
 ## Wardrobe lock:
@@ -1859,8 +1873,7 @@ ${ageLengthConfig.instruction}
 
 ## הנחיות איור
 ${adventureLogic ? `
-- הדמות חייבת ללבוש: ${adventureLogic.outfit}
-- הרקע חייב להיות: ${adventureLogic.background}
+${topicOutfit ? `- הדמות חייבת ללבוש: ${topicOutfit}\n` : ""}- הרקע חייב להיות: ${adventureLogic.background}
 - הנושא הכללי: ${adventureLogic.theme}
 ` : `
 - **נעילת לבוש:** קבע את לבוש הדמות בעמוד 1 (לפי הלבוש שתיאר ההורה, ואם לא תואר — לבוש יומיומי פשוט), וחזור על אותו תיאור לבוש **מילה במילה** בכל illustration_prompt בכל העמודים. אסור להחליף בגדים בין עמודים, אלא אם טקסט העמוד מציין שינוי מפורש (פיג'מה לפני שינה, מעיל בגשם).
@@ -1876,7 +1889,7 @@ ${learningNumber ? `- באיור הראשון: ${illustrationLearningTarget} מ�
 - האות/מספר בפונט עגול וצבעוני לילדים
 - Show the Arabic numeral digit ${learningNumber}, NOT a Hebrew letter.` : ''}
 ${learningColor ? `- כל האיורים מוצפים בצבע ${hebrewLearningTarget} — הרקע, החפצים, הבגדים, הפרחים והשמיים כולם בגוני ${hebrewLearningTarget}
-- הילד/ה לובש/ת בגדים בצבע ${hebrewLearningTarget}` : ''}
+${shortWriter ? "" : `- הילד/ה לובש/ת בגדים בצבע ${hebrewLearningTarget}`}` : ''}
 ${learningShape ? `- בכל איור מופיעות צורות ${hebrewLearningTarget} גדולות וקטנות מרחפות סביב הדמות
 - צורת ${hebrewLearningTarget} ענקית וזוהרת במרכז הסצנה` : ''}
 - Full body shot of the child, showing complete figure from head to toe. Do NOT cut off any body parts.
@@ -2018,11 +2031,12 @@ ${topic.endsWith('-edu') ? `
     userPrompt = userPrompt + (kippahOn
       ? (language === "en" ? "\n\nThe hero wears a small kippah (chosen by the parent); the text may mention it. Never tzitzit or sidelocks.\n" : "\n\nהגיבור חובש כיפה קטנה (לפי בחירת ההורה) — מותר להזכיר אותה בטקסט. ציצית ופאות — אסור תמיד.\n")
       : (language === "en" ? "\n\nNever mention a kippah, tzitzit, sidelocks or head covering on the hero.\n" : "\n\nאסור להזכיר כיפה, ציצית, פאות או כיסוי ראש על הגיבור/ה.\n"));
+    if (shortWriter) userPrompt = userPrompt + (language === "en" ? HERO_CLOTHES_WRITER_RULE_EN : HERO_CLOTHES_WRITER_RULE_HE);
     userPrompt = userPrompt + buildNlpInstruction(isCustomTopic ? null : (topicId || topic), language);
 
     // New stories drawn from the avatar: clothes the parent asked for in the free text are found once
     // (in parallel with the writing) and saved in story_outfit; otherwise the child wears the avatar's clothes.
-    const outfitRequestPromise: Promise<string | null> = usesShortPrompt(new Date().toISOString(), !!childAvatarUrl)
+    const outfitRequestPromise: Promise<string | null> = shortWriter
       ? detectRequestedOutfit([isCustomTopic ? String(topic || "") : "", fixedDetailsText].filter(Boolean).join("\n"), LOVABLE_API_KEY)
       : Promise.resolve(null);
     console.log("[generate-story] 📡 Calling Lovable AI Gateway (google/gemini-2.5-flash) with retry logic...");
@@ -2578,13 +2592,15 @@ ${fullStoryText}`;
           `Fallback illustration prompt generated for page ${page.page_number} - model omitted prompt`,
         );
       }
+      // Short-instruction story without a parent clothes request: no hero clothes in the saved scene.
+      if (promptForPage && shortWriter && !requestedOutfit) promptForPage = stripHeroClothes(promptForPage);
       return {
         story_id: story.id,
         page_number: page.page_number,
         text: page.text,
         illustration_prompt: promptForPage,
         illustration_prompt_2: isToddlerAge && page.illustration_prompt
-          ? `Same scene as the main illustration but from a DIFFERENT camera angle or showing the NEXT moment in the action. Original scene: ${page.illustration_prompt}`
+          ? `Same scene as the main illustration but from a DIFFERENT camera angle or showing the NEXT moment in the action. Original scene: ${shortWriter && !requestedOutfit ? stripHeroClothes(page.illustration_prompt) : page.illustration_prompt}`
           : null,
         illustration_url: null,
         illustration_url_2: null,

@@ -74,9 +74,34 @@ export interface ShortPromptInput {
   fix?: string;
 }
 
+// ─── No invented costume for the hero ───
+// Without a parent request (story_outfit empty) the hero always wears the avatar's clothes, so clothing
+// written by the story writer into a scene is removed before it reaches the drawing. Cast clothes come
+// from their own lines; a plot change of clothes (pajamas) still reaches the model through the page text.
+
+const GARMENT = "(?:costume|outfit|uniform|suit|cape|capes|clothes|clothing|t-shirt|tshirt|shirt|tee|top|pants|trousers|jeans|shorts|dress|skirt|overalls|jacket|coat|sweater|hoodie|vest|tracksuit|pajamas|pyjamas|onesie|gown|robe|mask|boots|sneakers|shoes|gloves|belt|emblem|logo|print|sleeves)";
+const W = "[A-Za-z'-]+";
+const PIECE = `(?:(?:a|an|his|her|their|the|matching)\\s+)?(?:${W}\\s+){0,6}?${GARMENT}\\b`;
+const MORE = `(?:,?\\s+(?:with|and)\\s+${PIECE})*`;
+const WEAR_SENTENCE = new RegExp(`(^|[.!?]\\s+)[^.!?\\n]*?\\b(?:is|are)\\s+(?:wearing|dressed (?:up )?(?:in|as))\\b[^.!?\\n]*[.!?]`, "gi");
+const WEAR_PHRASE = new RegExp(`,?\\s*\\b(?:who is\\s+|is\\s+)?(?:wearing|dressed (?:up )?(?:in|as)|clad in)\\s+${PIECE}${MORE}`, "gi");
+const ADJ = "(?!(?:near|by|next|beside|on|at|with|under|behind|of|to|and|in|from|room|house|garden|yard|park)\\b)[A-Za-z'-]+";
+const IN_PHRASE = new RegExp(`,?\\s*\\bin\\s+(?:a|an|his|her|their|the)\\s+(?:${ADJ}\\s+){0,5}?${GARMENT}\\b${MORE}`, "gi");
+const WITH_PHRASE = new RegExp(`,?\\s*\\bwith\\s+(?:a|an|his|her|their)\\s+(?:${W}\\s+){0,4}?(?:cape|mask|costume|emblem)\\b`, "gi");
+
+/** Removes clothing descriptions from the writer's scene text (English). Text without clothes is returned unchanged. */
+export function stripHeroClothes(scene: string): string {
+  const src = String(scene || "");
+  let s = src.replace(WEAR_SENTENCE, "$1").replace(WEAR_PHRASE, "").replace(IN_PHRASE, "").replace(WITH_PHRASE, "");
+  if (s === src) return src;
+  s = s.replace(/[ \t]{2,}/g, " ").replace(/\s+([,.;!?])/g, "$1").replace(/,\s*,/g, ",").replace(/,([.;!?])/g, "$1")
+    .replace(/(^|\n)\s*[,;]\s*/g, "$1").replace(/([A-Za-z]),(\s+(?:sits|stands|runs|looks|is|gently|happily|smiles))/g, "$1$2");
+  return s.trim();
+}
+
 export function buildShortIllustrationPrompt(input: ShortPromptInput): string {
-  const lines: string[] = [AVATAR_LINE, input.scene.trim()];
   const outfit = String(input.requestedOutfit || "").trim();
+  const lines: string[] = [AVATAR_LINE, (outfit ? input.scene : stripHeroClothes(input.scene)).trim()];
   lines.push(outfit ? requestedClothesLine(outfit) : AVATAR_CLOTHES_LINE);
   lines.push(PLOT_CLOTHES_LINE);
   if (input.kippah) lines.push(`The child wears a small knitted ${input.kippahColor || "dark blue"} kippah on the head (hair visible).`);
@@ -97,6 +122,20 @@ export function shortReferenceContent(avatar: string, leoUrl: string | null, pro
   out.push({ type: "text", text: prompt });
   return out;
 }
+
+/** Writer rule (short-instruction stories): the hero's clothes are never invented. */
+export const HERO_CLOTHES_WRITER_RULE_HE =
+  "\n\n## 👕 בגדי הגיבור/ה — גובר על כל הוראת לבוש אחרת למעלה\n" +
+  "- הבגדים של הגיבור/ה נלקחים אוטומטית מהאווטאר שלו/ה. **אסור** לתאר את בגדי הגיבור/ה ב-illustration_prompt (לא חולצה, לא צבע בגד, לא תחפושת, לא גלימה, לא מדים, לא סמל).\n" +
+  "- **אסור** להלביש את הגיבור/ה בתחפושת, במדים או בבגדים מיוחדים בטקסט הסיפור, אלא אם ההורה ביקש את זה במפורש בטקסט שכתב.\n" +
+  "- מותר רק שינוי בגדים שהוא חלק מהעלילה (פיג'מה לפני השינה, מעיל בגשם), ורק בטקסט העמוד.\n" +
+  "- דמויות החבורה: כמו תמיד, רק שם באנגלית ומה הן עושות — הבגדים הרשמיים שלהן מתווספים אוטומטית.\n";
+export const HERO_CLOTHES_WRITER_RULE_EN =
+  "\n\n## Hero clothes — overrides every outfit/wardrobe instruction above\n" +
+  "- The hero's clothes come automatically from the child's avatar. Never describe the hero's clothes in illustration_prompt (no shirt, garment colour, costume, cape, uniform or emblem).\n" +
+  "- Never dress the hero in a costume, uniform or special clothes in the story text unless the parent's own request explicitly asks for it.\n" +
+  "- Only a plot change of clothes (pajamas at bedtime, a raincoat in the rain) is allowed, and only in the page text.\n" +
+  "- Gang characters: as always, only their English name and what they do — their official clothes are added automatically.\n";
 
 // ─── Checks after the drawing ───
 
