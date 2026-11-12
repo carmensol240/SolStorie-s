@@ -4,6 +4,7 @@
 // the previous picture stays (or, for a page that had none, see redrawDecision) and the admin is alerted.
 import { LOOK_KEPT_PREFIX, AVATAR_STYLE_FACE_FIX, AVATAR_BLEND_FIX } from "./look-check.ts";
 import { imageSize, shapeMatches, shapeFixInstruction, SHAPE_PROBLEM } from "./illustration-format.ts";
+import { clothesCheckQuestions, clothesProblemsFrom, clothesFixInstruction, type ClothesCheck } from "./short-prompt.ts";
 
 export const STYLE_PROBLEM = "not 3D Pixar";
 export const MAX_STYLE_REDRAWS = 2;
@@ -68,7 +69,7 @@ export function redrawProblemsFrom(p: Record<string, unknown>, opts: { hasFace: 
 }
 
 /** Correction text for the next redraw. */
-export function redrawFixInstruction(problems: string[], opts: { age?: string; hair?: string; features?: string[]; format?: string | null; avatarStyle?: boolean } = {}): string {
+export function redrawFixInstruction(problems: string[], opts: { age?: string; hair?: string; features?: string[]; format?: string | null; avatarStyle?: boolean; clothesOutfit?: string | null } = {}): string {
   const parts: string[] = [];
   if (problems.includes(SHAPE_PROBLEM)) parts.push(shapeFixInstruction(opts.format));
   if (hasStyleProblem(problems)) parts.push(opts.avatarStyle ? AVATAR_STYLE_FIX_INSTRUCTION : STYLE_FIX_INSTRUCTION);
@@ -81,6 +82,9 @@ export function redrawFixInstruction(problems: string[], opts: { age?: string; h
   if (problems.includes("avatar blend")) face.push(AVATAR_BLEND_FIX);
   if (face.length) parts.push(`FACE FIX (the previous attempt did not match the face reference picture): ${face.join("; ")}.`);
   if (problems.includes("text in image")) parts.push("TEXT FIX: no letters, words, captions or signs anywhere in the picture.");
+  // Short-instruction stories: clothes of the hero / gang and foreign flags.
+  const clothes = clothesFixInstruction(problems, opts.clothesOutfit);
+  if (clothes) parts.push(clothes);
   return parts.join("\n");
 }
 
@@ -127,25 +131,30 @@ export async function checkRedrawPicture(
   imageUrl: string,
   faceUrl: string | null,
   apiKey: string,
-  opts: { age?: string; hair?: string; allowText?: boolean; features?: string[]; format?: string | null; avatarStyle?: boolean } = {},
+  opts: { age?: string; hair?: string; allowText?: boolean; features?: string[]; format?: string | null; avatarStyle?: boolean; clothes?: ClothesCheck | null } = {},
 ): Promise<{ problems: string[]; reason: string } | null> {
   const hasFace = !!faceUrl;
   const avatarStyle = !!opts.avatarStyle && hasFace;
   const shape = opts.format !== undefined ? shapeProblems(imageUrl, opts.format) : [];
   const feats = (opts.features || []).filter(Boolean);
+  // Clothes questions need the avatar as Image A (short-instruction stories only).
+  const clothes = hasFace ? opts.clothes ?? null : null;
   const text =
     (hasFace ? "Image A is the child's face reference picture. Image B is a new page of a children's book about this child. Answer about Image B" : "Answer about this children's book picture") +
     " (ignore clothes, pose and background):\n" +
     styleQuestions(avatarStyle) +
-    "- has_text: are there clearly readable letters or words drawn in the picture? Toy blocks, logos and patterns are NOT text.\n" +
+    (clothes
+      ? "- has_text: are there clearly readable letters or words drawn in the picture, in any language (English/Latin letters included)? Toy blocks, logos and patterns are NOT text.\n"
+      : "- has_text: are there clearly readable letters or words drawn in the picture? Toy blocks, logos and patterns are NOT text.\n") +
     (hasFace
       ? "- avatar_face_match: is the main child in B clearly the same child as in A (face shape, eyes, nose, mouth, cheeks)? Be strict; false if it looks like a different child.\n" +
         `- avatar_age_match: does the main child look ${opts.age ? `about ${opts.age} years old,` : ""} the same age as in A? false if clearly younger or older.\n` +
         `- avatar_hair_match: is the hair the same shade, length and hairstyle as in A${opts.hair ? ` (expected: ${opts.hair})` : ""}? false if clearly different.\n` +
         (feats.length ? `- avatar_features_match: does the main child in B keep most of these features of A: ${feats.join("; ")}? false if two or more are clearly missing or different.\n` : "") +
-        (avatarStyle ? avatarStyleQuestions("B", "A") : "")
+        (avatarStyle ? avatarStyleQuestions("B", "A") : "") +
+        (clothes ? `Now look at the clothes and objects of Image B (clothes do count for these):\n${clothesCheckQuestions("Image B", "Image A", clothes)}` : "")
       : "") +
-    `Answer strict JSON only: {"pixar_3d":bool,"photo_realistic":bool,"has_text":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,${avatarStyle ? '"avatar_style_match":bool,"avatar_blend":bool,' : ""}"reason":"<max 15 words>"}`;
+    `Answer strict JSON only: {"pixar_3d":bool,"photo_realistic":bool,"has_text":bool,"avatar_face_match":bool,"avatar_age_match":bool,"avatar_hair_match":bool,"avatar_features_match":bool,${avatarStyle ? '"avatar_style_match":bool,"avatar_blend":bool,' : ""}${clothes ? '"hero_clothes_ok":bool,"gang_clothes_ok":bool,"foreign_flag":bool,' : ""}"reason":"<max 15 words>"}`;
   const content: any[] = [{ type: "text", text }];
   if (faceUrl) content.push({ type: "image_url", image_url: { url: faceUrl } });
   content.push({ type: "image_url", image_url: { url: imageUrl } });
@@ -165,7 +174,7 @@ export async function checkRedrawPicture(
       const p = JSON.parse(j.slice(s, e + 1));
       if (!feats.length) delete p.avatar_features_match;
       if (!avatarStyle) { delete p.avatar_style_match; delete p.avatar_blend; }
-      const problems = [...redrawProblemsFrom(p, { hasFace, allowText: opts.allowText }), ...shape];
+      const problems = [...redrawProblemsFrom(p, { hasFace, allowText: opts.allowText }), ...(clothes ? clothesProblemsFrom(p, clothes) : []), ...shape];
       return { problems, reason: `${problems.join(", ")}${p.reason ? ` (${String(p.reason).slice(0, 100)})` : ""}` || "ok" };
     } catch (err) {
       console.warn("[STYLE-CHECK] failed:", (err as Error)?.message);

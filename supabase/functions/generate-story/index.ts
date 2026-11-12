@@ -19,6 +19,7 @@ import { claimStoryRequest, releaseStoryRequest, supabaseStoryRequestStore, isVa
 import { normalizeEmail, decideTasteEligibility, tastePageLimit, emailTasteHash } from "../_shared/taste.ts";
 import { plannedIllustrationPages, enforceCastAndTastePictures, castPromptAddition, CAST_INTRO_HE, type CastKey } from "../_shared/story-cast-pages.ts";
 import { isHeroCastName } from "../_shared/style-config.ts";
+import { usesShortPrompt, detectRequestedOutfit } from "../_shared/short-prompt.ts";
 
 async function sha256Hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -1351,6 +1352,8 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
     } : {};
     const kippahOn = kippahForRequest(normalizeGender(childGender) ?? childGender, reqBody?.appearance?.kippah);
     let childPersonalization = "";
+    // Fixed details from the child profile — also read for a clothes request (short-instruction stories).
+    let fixedDetailsText = "";
     if (userId) {
       try {
         const { data: childData, error: childErr } = await supabase
@@ -1370,6 +1373,7 @@ async function handleGenerateStory(req: Request, ctx: RequestCtx): Promise<Respo
           }
         } else if (childData) {
           const parts: string[] = [];
+          fixedDetailsText = String(childData.fixed_details || "").trim();
           if (childData.fixed_details?.trim()) parts.push(`רקע קבוע על הילד/ה: ${childData.fixed_details.trim()}\n(שימו לב: כל גיל שמופיע ברקע הזה שייך לאחים, לחברים או לבני משפחה בלבד — הגיל של ${childName} נקבע רק לפי טווח הגיל שנבחר.)`);
           if (childData.hobbies?.trim()) parts.push(`תחביבים ואהבות: ${childData.hobbies.trim()}`);
           if (childData.challenges?.trim()) parts.push(`אתגרים נוכחיים: ${childData.challenges.trim()}`);
@@ -2016,6 +2020,11 @@ ${topic.endsWith('-edu') ? `
       : (language === "en" ? "\n\nNever mention a kippah, tzitzit, sidelocks or head covering on the hero.\n" : "\n\nאסור להזכיר כיפה, ציצית, פאות או כיסוי ראש על הגיבור/ה.\n"));
     userPrompt = userPrompt + buildNlpInstruction(isCustomTopic ? null : (topicId || topic), language);
 
+    // New stories drawn from the avatar: clothes the parent asked for in the free text are found once
+    // (in parallel with the writing) and saved in story_outfit; otherwise the child wears the avatar's clothes.
+    const outfitRequestPromise: Promise<string | null> = usesShortPrompt(new Date().toISOString(), !!childAvatarUrl)
+      ? detectRequestedOutfit([isCustomTopic ? String(topic || "") : "", fixedDetailsText].filter(Boolean).join("\n"), LOVABLE_API_KEY)
+      : Promise.resolve(null);
     console.log("[generate-story] 📡 Calling Lovable AI Gateway (google/gemini-2.5-flash) with retry logic...");
     const geminiResult = await callGatewayWithRetry({
       apiKey: LOVABLE_API_KEY,
@@ -2476,6 +2485,12 @@ ${fullStoryText}`;
     // Kippah: only what the form sent now (never the saved profile); girls never.
     storyInsertData.kippah = kippahOn;
     storyInsertData.kippah_color = kippahOn ? kippahColor(reqAppearance) : null;
+    // Clothes the parent asked for (short-instruction stories): replace the avatar's clothes on every page.
+    const requestedOutfit = await outfitRequestPromise.catch(() => null);
+    if (requestedOutfit) {
+      storyInsertData.story_outfit = requestedOutfit;
+      console.log(`[generate-story] 🎽 parent asked for clothes: "${requestedOutfit}"`);
+    }
     // Picture shape for the whole story, decided once here (switch off → landscape, as today).
     try {
       let mode = readSwitch(Deno.env.get("SQUARE_ILLUSTRATIONS"));

@@ -63,6 +63,8 @@ const CLOTHING_TYPES = [
   { value: "בגדי חורף", emoji: "❄️" },
 ];
 
+// Clothing type/color questions are hidden (kippah stays); the profile columns are kept.
+const SHOW_CLOTHING_QUESTIONS = false;
 const CLOTHING_COLORS = ["כחול", "ורוד", "אדום", "ירוק", "סגול", "צהוב"];
 
 const HAIR_COLORS = ["חום", "שחור", "בלונדיני", "ג'ינג'י", "חום בהיר"];
@@ -843,7 +845,9 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         </div>
       </div>
 
-      {/* Clothing type · Clothing color */}
+      {/* Clothing type · Clothing color — hidden: new stories dress the child like the avatar
+          (or as the parent asks in the free text). Saved profile values are kept. */}
+      {SHOW_CLOTHING_QUESTIONS && (
       <div className="space-y-1">
         <Label id="child-clothing-label" className="text-sm font-medium">סוג לבוש</Label>
         <div role="group" aria-labelledby="child-clothing-label" className="grid grid-cols-3 gap-2">
@@ -866,6 +870,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
           ))}
         </div>
       </div>
+      )}
 
       {formData.childGender === "male" && (
         <div className="space-y-1">
@@ -884,6 +889,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
         </div>
       )}
 
+      {SHOW_CLOTHING_QUESTIONS && (
       <div className="space-y-1">
         <Label id="child-color-label" className="text-sm font-medium">צבע עיקרי</Label>
         <div role="group" aria-labelledby="child-color-label" className="grid grid-cols-3 gap-2">
@@ -905,6 +911,7 @@ const ChildInfoStep = ({ formData, updateFormData, screen = 1, restoredDraft, on
           ))}
         </div>
       </div>
+      )}
       </>
       )}
 

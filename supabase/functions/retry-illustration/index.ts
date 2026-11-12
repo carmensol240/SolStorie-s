@@ -4,6 +4,7 @@ import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { formatRule } from "../_shared/illustration-format.ts";
 import { buildIllustrationPrompt, referenceContent, faceShare, type PromptHero, type PromptRefs } from "../_shared/illustration-prompt.ts";
+import { usesShortPrompt, buildShortIllustrationPrompt, shortReferenceContent, type ClothesCheck } from "../_shared/short-prompt.ts";
 import { checkRedrawPicture, redrawDecision, redrawFixInstruction, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
 import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
 import { pickFramingAngle, framingComposition, usesConsistentFraming } from "../_shared/camera-framing.ts";
@@ -366,6 +367,10 @@ serve(async (req) => {
     const storyFormat: string | null = (story as any).illustration_format ?? null;
     // New stories (date) or an older story's own opt-in (hero_avatar_style; never hero_traits): hero in the avatar's 3D render style.
     const avatarStyleOn = usesAvatarStyle((story as any).created_at, !!childPhoto && (photoSource === "avatar" || photoSource === "profile_avatar"), (story as any).hero_avatar_style);
+    // New stories (SHORT_PROMPT_CUTOFF) drawn from the avatar: short instruction, avatar's clothes unless the
+    // parent asked for clothes (story_outfit), no page reference picture, plus the clothes/flag checks.
+    const shortOn = !!childPhoto && usesShortPrompt((story as any).created_at, photoSource === "avatar" || photoSource === "profile_avatar");
+    const requestedOutfit: string | null = shortOn ? (String((story as any).story_outfit || "").trim() || null) : null;
     const hero: PromptHero = {
       gender: (story as any).child_gender, ageText, outfit, kippah: kp.kippah, kippahColor: kp.color,
       lookText: childPhoto ? "" : hairToEnglish(ap),
@@ -398,10 +403,21 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       // Older stories: page 1 is also cropped into the square library cover card.
       sceneParts.push(`COMPOSITION (COVER SAFE ZONE): The main character is centered in the frame, full body visible, with at least 15% empty margin on every side and extra headroom at the top. Nothing important touches the edges — this image is also cropped to a square cover card.`);
     }
-    const refs: PromptRefs = { face: !!childPhoto, canon: !!pageOneReferenceUrl, canonPage: refPageNumber, leo: withLeo };
-    const promptFor = (fix: string) => buildIllustrationPrompt({
-      refs, hero, scene: sceneParts.join("\n\n"), rules: pageRules, formatRule: formatRule((story as any).illustration_format), fix,
-    });
+    const refs: PromptRefs = { face: !!childPhoto, canon: !!pageOneReferenceUrl && !shortOn, canonPage: refPageNumber, leo: withLeo };
+    const pageCast = castInText(castText, story.child_name);
+    const topicId = String(story.topic || "");
+    const learningTarget = topicId.startsWith("letter-") ? `Hebrew letter ${topicId.replace("letter-", "").toUpperCase()}`
+      : topicId.startsWith("number-") ? `number ${topicId.replace("number-", "")}` : null;
+    const promptFor = (fix: string) => shortOn
+      ? buildShortIllustrationPrompt({
+          scene: [`Scene: ${visualDescription}`, pageNarrative ? storyTextForPrompt(pageNarrative) : ""].filter(Boolean).join("\n"),
+          requestedOutfit, kippah: kp.kippah, kippahColor: kp.color, cast: pageCast, leoImage: withLeo ? 2 : null,
+          extra: [learningTarget ? `The ${learningTarget} appears large, clear and complete in the scene (3D golden style) — the only writing allowed.` : "", militaryLock],
+          format: storyFormat, learningTarget, fix,
+        })
+      : buildIllustrationPrompt({
+          refs, hero, scene: sceneParts.join("\n\n"), rules: pageRules, formatRule: formatRule((story as any).illustration_format), fix,
+        });
 
     let modelUsed = "unknown";
     let fallbackReason: string | undefined;
@@ -421,7 +437,9 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     const drawOnce = async (fix: string, attempts: number, timeoutMs: number): Promise<{ image: string | null; model: string }> => {
       const prompt = promptFor(fix);
       if (hasVisualReference) {
-        const content = referenceContent({ face: childPhoto, canon: pageOneReferenceUrl, leo: withLeo ? LEO_REF_URL : null }, prompt);
+        const content = shortOn && childPhoto
+          ? shortReferenceContent(childPhoto, withLeo ? LEO_REF_URL : null, prompt)
+          : referenceContent({ face: childPhoto, canon: pageOneReferenceUrl, leo: withLeo ? LEO_REF_URL : null }, prompt);
         for (let attempt = 1; attempt <= attempts; attempt++) {
           try {
             logImageGenCall("lovable-gateway/chat-completions", "google/gemini-3-pro-image", prompt, null);
@@ -492,7 +510,8 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     // Time budget: the browser waits for this answer (~150 s platform cut-off).
     const REDRAW_START_LIMIT_MS = 85_000;
     const HARD_LIMIT_MS = 140_000;
-    const checkOpts = { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn, allowText: String(story.topic || "").startsWith("letter-") || String(story.topic || "").startsWith("number-") };
+    const clothesCheck: ClothesCheck | null = shortOn ? { outfit: requestedOutfit, cast: pageCast, pageText: String((page as any).text || "") } : null;
+    const checkOpts = { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn, clothes: clothesCheck, allowText: String(story.topic || "").startsWith("letter-") || String(story.topic || "").startsWith("number-") };
     const tries: { image: string; model: string; problems: string[]; reason: string }[] = [];
     let fix = "";
     for (let round = 0; round <= MAX_STYLE_REDRAWS; round++) {
@@ -508,7 +527,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       tries.push({ image: g.image, model: g.model, problems, reason: v?.reason || "check unavailable" });
       console.log(`[STYLE-CHECK] story=${storyId} page=${page.page_number} try ${round + 1}: ${problems.length ? problems.join(", ") : "pass"}`);
       if (!problems.length) break;
-      fix = redrawFixInstruction(problems, { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn });
+      fix = redrawFixInstruction(problems, { age: ageText, hair: traits?.hair, features: heroFeatures, format: storyFormat, avatarStyle: avatarStyleOn, clothesOutfit: requestedOutfit });
     }
 
     const durationMs = Date.now() - genStart;
@@ -527,7 +546,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         story_id: storyId, page_number: page.page_number,
         model_used: decision.action === "keep_old" ? "kept_previous" : "held_mismatch",
         fallback_reason: `redraw failed the 3D Pixar / face check after ${tries.length} tries: ${problemsText}`,
-        had_face_reference: !!childPhoto, had_page1_reference: !!pageOneReferenceUrl, camera_angle: cameraAngle,
+        had_face_reference: !!childPhoto, had_page1_reference: refs.canon, camera_angle: cameraAngle,
         duration_ms: durationMs, attempts: tries.length,
         identity_check: `redraw failed, ${decision.action === "keep_old" ? "old kept" : "held"}: ${problemsText}`.slice(0, 300), identity_retried: tries.length > 1,
       });
@@ -604,7 +623,7 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
       model_used: modelUsed,
       fallback_reason: fallbackReason || null,
       had_face_reference: !!childPhoto,
-      had_page1_reference: !!pageOneReferenceUrl,
+      had_page1_reference: refs.canon,
       camera_angle: cameraAngle,
       duration_ms: durationMs,
       attempts: tries.length,

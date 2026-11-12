@@ -1,7 +1,7 @@
 // Detailed comparison of a page against page 1: eyes, hair tone, drawing style, outfit, chest emblem.
 // A page failing only these gets one redraw; if it still fails, the closer picture is kept and the
 // story becomes needs_attention (the saved log's identity_check starts with LOOK_KEPT_PREFIX).
-export const LOOK_PROBLEMS = ["eye color", "hair tone", "render style", "outfit vs page 1", "emblem", "avatar face", "avatar age", "avatar hair", "avatar features", "avatar style", "avatar blend"] as const;
+export const LOOK_PROBLEMS = ["eye color", "hair tone", "render style", "outfit vs page 1", "emblem", "avatar face", "avatar age", "avatar hair", "avatar features", "avatar style", "avatar blend", "hero clothes", "gang clothes"] as const;
 export const LOOK_KEPT_PREFIX = "look mismatch kept";
 export const MAX_LOOK_REDRAWS = 1;
 
@@ -46,6 +46,8 @@ export function lookFixInstruction(problems: string[], differences: string, eyeC
   if (problems.includes("avatar hair")) parts.push(`hair must be exactly ${avatar?.hair || "the shade in the face reference picture"}, as in the face reference picture`);
   if (problems.includes("avatar style")) parts.push(AVATAR_STYLE_FACE_FIX);
   if (problems.includes("avatar blend")) parts.push(AVATAR_BLEND_FIX);
+  // Clothes problems ("hero clothes"/"gang clothes") get their fix from redrawFixInstruction.
+  if (!parts.length) return "";
   return `\n\nCONSISTENCY FIX (previous attempt differed from page 1${differences ? `: ${differences}` : ""}): ${parts.join("; ")}.`;
 }
 
