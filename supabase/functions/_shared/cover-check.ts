@@ -3,7 +3,7 @@
 // Pixar-like 3D render. Clothes, emblem and "no reference" never count against it, and after the
 // redraws it is never left empty: the closest picture is kept and the story needs attention.
 import { isLookOnly, LOOK_KEPT_PREFIX } from "./look-check.ts";
-import { closestTryIndex, styleProblemsFrom } from "./style-check.ts";
+import { closestTryIndex, hasStyleProblem, styleProblemsFrom } from "./style-check.ts";
 
 /** identity_check prefix of a cover kept after failed redraws; starts with LOOK_KEPT_PREFIX so the story is needs_attention. */
 export const COVER_KEPT_PREFIX = `${LOOK_KEPT_PREFIX} (cover vs avatar)`;
@@ -39,7 +39,9 @@ export function keptTryAfterFailedRedraws<T extends CheckedTry>(
   const closest = (list: T[]) => list.reduce((a, b) => (b.problems.length < a.problems.length ? b : a));
   if (pageNumber === 1) {
     // Closest try, preferring one that passed the 3D Pixar check.
+    // Never a flat 2D / photo try: with no 3D try at all the page is held for the admin instead.
     const best = tries[closestTryIndex(tries)];
+    if (hasStyleProblem(best.problems)) return null;
     return { best, identityCheck: `${COVER_KEPT_PREFIX}: ${best.reason}`.slice(0, 300), cover: true };
   }
   const lookTries = tries.filter((t) => isLookOnly(t.problems));

@@ -15,6 +15,7 @@ import { buildIllustrationPrompt, referenceContent, referenceOrdinals, faceShare
 import { usesShortPrompt, buildShortIllustrationPrompt, shortReferenceContent, clothesCheckQuestions, clothesProblemsFrom, type ClothesCheck } from "../_shared/short-prompt.ts";
 import { PIXAR_3D_QUESTION, styleQuestions, avatarStyleQuestions, STYLE_PROBLEM, hasStyleProblem, redrawFixInstruction, styleProblemsFrom, checkRedrawPicture, shapeProblems, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
 import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
+import { hasTimeFor, pageCheckReference, waitsForPageOne } from "../_shared/page-run.ts";
 import { LOOK_PROBLEMS, LOOK_KEPT_PREFIX } from "../_shared/look-check.ts";
 import { formatRule, backupSizeFor, SHAPE_PROBLEM } from "../_shared/illustration-format.ts";
 import { reserveRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
@@ -1259,6 +1260,8 @@ async function generateCoverImage(
 }
 
 serve(async (req) => {
+  // Start of this run: redraws start only while they still fit before the platform cut-off.
+  const invocationStartedAt = Date.now();
   console.log("=== generate-illustrations function called ===");
   
   if (req.method === "OPTIONS") {
@@ -2092,7 +2095,8 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         const publicPageUrl = buildPublicIllustrationUrl(illustrationUrl);
         if (publicPageUrl) {
           const isBackup = modelUsed === "backup_gpt_image";
-          const pageRef = page.page_number !== 1 ? coverReferenceUrl : null;
+          // Short-instruction stories: compared with the avatar only (page 1 is not their reference).
+          const pageRef = pageCheckReference(page.page_number, pageShort, coverReferenceUrl);
           // First drawing of page 1 (the cover): compared only with the avatar.
           const coverCheck = page.page_number === 1 && !hadExisting;
           const pageAvatarCheck = hadExisting ? redrawAvatarCheck : avatarCheck;
@@ -2153,6 +2157,12 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
             const lookOnly = !coverCheck && isLookOnly(verdict.problems);
             const maxRedraws = lookOnly ? MAX_LOOK_REDRAWS : Math.max(MAX_IDENTITY_REDRAWS, MAX_STYLE_REDRAWS);
             for (let r = 1; r <= maxRedraws && !passed; r++) {
+              if (!hasTimeFor(invocationStartedAt, Date.now())) {
+                // Time net: no redraw that would be cut off. The keep/hold rules below decide now
+                // (look-only / 3D cover try kept + alert; anything else held + alert; never 2D).
+                console.warn(`[TIME-NET] story=${storyId} page=${page.page_number} no time for redraw ${r} (${Math.round((Date.now() - invocationStartedAt) / 1000)}s used) — deciding with ${tries.length} try(s)`);
+                break;
+              }
               const prevTry = tries[tries.length - 1];
               const lookList = prevTry.problems.filter((x) => (LOOK_PROBLEMS as readonly string[]).includes(x));
               const fix = [
@@ -2329,6 +2339,10 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
         // Same mandatory 3D Pixar check (and face check) as every picture: up to MAX_STYLE_REDRAWS redraws, else not saved.
         let secondFix = "";
         for (let round = 0; round <= MAX_STYLE_REDRAWS && !secondImage; round++) {
+          if (!hasTimeFor(invocationStartedAt, Date.now())) {
+            console.warn(`[TIME-NET] story=${storyId} page=${page.page_number} no time left for the second picture (round ${round})`);
+            break;
+          }
           let candidate: string | null = null;
           let secondStop = false;
           for (let attempt = 1; attempt <= (round === 0 ? 3 : 1); attempt++) {
@@ -2384,7 +2398,8 @@ The action, objects, characters, and emotions shown MUST come from the STORY TEX
     // wait — bounded — for page 1's illustration to exist and use it as the canonical
     // character reference. Without this wait all pages race and generate reference-free,
     // which is what caused the character to drift between the cover and pages 2+.
-    if (!firstPage && restPages.length > 0) {
+    // Short-instruction stories never send page 1 to the drawing, so they do not wait for it.
+    if (!firstPage && restPages.length > 0 && waitsForPageOne(shortOn && !!childPhotoSignedUrl)) {
       coverReferenceForRest = await waitForPageOneIllustration(supabase, storyId);
       if (coverReferenceForRest) {
         console.log(`🔗 Using page-1 illustration as character reference for page(s) ${restPages.map(p => p.page_number).join(", ")}`);

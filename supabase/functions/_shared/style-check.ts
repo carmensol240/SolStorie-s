@@ -107,6 +107,8 @@ export function redrawDecision(tries: RedrawTry[], opts: { hadExisting: boolean;
   if (opts.hadExisting || tries.length === 0) return tries.length === 0 && !opts.hadExisting ? { action: "hold" } : { action: "keep_old" };
   if (opts.pageNumber !== 1) return { action: "hold" };
   const index = closestTryIndex(tries);
+  // Never save a flat 2D / photo try as the closest one.
+  if (hasStyleProblem(tries[index].problems)) return { action: "hold" };
   return { action: "save_closest", index, identityCheck: `${LOOK_KEPT_PREFIX}: ${tries[index].problems.join(", ")}`.slice(0, 300) };
 }
 
