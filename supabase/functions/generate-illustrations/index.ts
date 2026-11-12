@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { logError } from "../_shared/log-error.ts";
 import { refreshStoryReadiness } from "../_shared/story-readiness.ts";
 import { isLookOnly, lookFixInstruction, lookProblemsFrom, MAX_LOOK_REDRAWS } from "../_shared/look-check.ts";
-import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, AVATAR_LIKENESS_QUESTION, usesLikeness, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, usesAvatarTraits, type AvatarTraits } from "../_shared/avatar-traits.ts";
+import { applyAvatarTraits, AVATAR_TRAITS_QUESTION, AVATAR_LIKENESS_QUESTION, likenessFlags, avatarWinsRule, formHairFromShade, normalizeHairShade, parseAvatarTraits, realAgeText, type AvatarTraits } from "../_shared/avatar-traits.ts";
 import { coverProblemsFrom, keptTryAfterFailedRedraws } from "../_shared/cover-check.ts";
 import { buildIllustrationPrompt, referenceContent, referenceOrdinals, faceShare, type PromptHero, type PromptRefs } from "../_shared/illustration-prompt.ts";
 import { PIXAR_3D_QUESTION, STYLE_PROBLEM, hasStyleProblem, redrawFixInstruction, styleProblemsFrom, checkRedrawPicture, shapeProblems, MAX_STYLE_REDRAWS } from "../_shared/style-check.ts";
@@ -1600,12 +1600,14 @@ serve(async (req) => {
     if (storyId) {
       const { data: so } = await supabase.from("stories").select("story_outfit, kippah, kippah_color, child_gender, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, cover_url").eq("id", storyId).maybeSingle();
       storyFormat = (so as any)?.illustration_format ?? null;
-      likenessOn = usesLikeness((so as any)?.created_at);
+      // Saved hero_traits switch the avatar rules on for any story (older ones only when an admin saved them).
+      const lf = likenessFlags((so as any)?.created_at, (so as any)?.hero_traits);
+      likenessOn = lf.likenessOn;
       savedFeatures = Array.isArray((so as any)?.hero_traits) ? (so as any).hero_traits : [];
       storyFormatRule = formatRule((so as any)?.illustration_format);
       avatarCoverStory = isAvatarCoverUrl((so as any)?.cover_url);
       consistentFraming = usesConsistentFraming((so as any)?.created_at);
-      avatarTraitsOn = usesAvatarTraits((so as any)?.created_at);
+      avatarTraitsOn = lf.traitsOn;
       const sh = normalizeHairShade((so as any)?.hero_hair_shade);
       if (sh && (so as any)?.hero_eye_color && (so as any)?.hero_skin_tone) {
         avatarTraits = { hair: sh, eyes: (so as any).hero_eye_color, skin: (so as any).hero_skin_tone };

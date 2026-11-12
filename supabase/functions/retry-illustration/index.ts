@@ -8,7 +8,7 @@ import { checkRedrawPicture, redrawDecision, redrawFixInstruction, MAX_STYLE_RED
 import { notifyIllustrationIssue } from "../_shared/illustration-alert.ts";
 import { pickFramingAngle, framingComposition, usesConsistentFraming } from "../_shared/camera-framing.ts";
 import { reserveRedraws, releaseRedraws, REDRAW_LIMIT_MESSAGE_HE } from "../_shared/redraw-limit.ts";
-import { avatarWinsRule, normalizeHairShade, realAgeText, usesAvatarTraits, usesLikeness } from "../_shared/avatar-traits.ts";
+import { avatarWinsRule, likenessFlags, normalizeHairShade, realAgeText } from "../_shared/avatar-traits.ts";
 import { mergeAppearance, hairToEnglish, clothingToEnglish, buildCharacterLock, kippahForStory } from "../_shared/appearance.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
@@ -356,12 +356,12 @@ serve(async (req) => {
     });
     const outfit = ((story as any).story_outfit || clothingToEnglish(ap, (story as any).child_gender) || "");
     const kp = kippahForStory(story as any);
-    const traitsOn = usesAvatarTraits((story as any).created_at);
+    // Saved hero_traits switch the avatar rules on for any story (older ones only when an admin saved them).
+    const { traitsOn, likenessOn } = likenessFlags((story as any).created_at, (story as any).hero_traits);
     const ageText = realAgeText(childRow?.age, (story as any).age_range);
     const sh = normalizeHairShade((story as any).hero_hair_shade);
     const traits = traitsOn && sh && (story as any).hero_eye_color && (story as any).hero_skin_tone
       ? { hair: sh, eyes: (story as any).hero_eye_color, skin: (story as any).hero_skin_tone } : null;
-    const likenessOn = usesLikeness((story as any).created_at);
     const heroFeatures: string[] = likenessOn && Array.isArray((story as any).hero_traits) ? (story as any).hero_traits : [];
     const storyFormat: string | null = (story as any).illustration_format ?? null;
     const hero: PromptHero = {

@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { applyAvatarTraits, avatarWinsRule, formHairFromShade, hairWithShade, normalizeHairShade, parseAvatarTraits, realAgeText, usesAvatarTraits } from "./avatar-traits.ts";
+import { applyAvatarTraits, avatarWinsRule, formHairFromShade, hairWithShade, normalizeHairShade, parseAvatarTraits, realAgeText, usesAvatarTraits, likenessFlags } from "./avatar-traits.ts";
 import { lookProblemsFrom, isLookOnly } from "./look-check.ts";
 import { keptTryAfterFailedRedraws } from "./cover-check.ts";
 
@@ -42,4 +42,13 @@ Deno.test("a page failing the avatar check is a look problem: kept with the clos
   ]);
   assertEquals(kept?.best.image, "b");
   assertEquals(kept?.identityCheck.startsWith("look mismatch kept"), true);
+});
+
+Deno.test("saved hero_traits switch on features, close framing and avatar tones for an older story", () => {
+  const old = "2026-11-11T16:41:34Z"; // before AVATAR_TRAITS_CUTOFF and LIKENESS_CUTOFF
+  assertEquals(likenessFlags(old, null), { traitsOn: false, likenessOn: false });
+  assertEquals(likenessFlags(old, []), { traitsOn: false, likenessOn: false });
+  assertEquals(likenessFlags(old, ["short near-black hair swept to the side", "full round cheeks", "thick straight eyebrows"]), { traitsOn: true, likenessOn: true });
+  assertEquals(likenessFlags("2026-11-12T08:00:00Z", null), { traitsOn: true, likenessOn: true });
+  assertEquals(likenessFlags("2026-11-11T20:00:00Z", null), { traitsOn: true, likenessOn: false });
 });

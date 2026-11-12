@@ -56,6 +56,16 @@ export function usesAvatarTraits(createdAt: string | null | undefined): boolean 
   return !Number.isNaN(t) && t >= Date.parse(AVATAR_TRAITS_CUTOFF);
 }
 
+/**
+ * Which avatar rules a story gets. Saved distinguishing features (stories.hero_traits) switch on the
+ * features, the closer framing and the avatar hair/eye/skin tones for any story, whatever its date —
+ * an older story only has them when an admin saved them on purpose. Older stories without them stay unchanged.
+ */
+export function likenessFlags(createdAt: string | null | undefined, heroTraits: unknown): { traitsOn: boolean; likenessOn: boolean } {
+  const saved = Array.isArray(heroTraits) && heroTraits.some((v) => String(v ?? "").trim().length > 0);
+  return { traitsOn: saved || usesAvatarTraits(createdAt), likenessOn: saved || usesLikeness(createdAt) };
+}
+
 /** Real age from the profile; the age range only when the profile has none. */
 export function realAgeText(profileAge: number | null | undefined, ageRange?: string | null): string {
   const n = Number(profileAge);
