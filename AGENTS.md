@@ -18,5 +18,5 @@
 - Admin "handled" marks live in admin_handled_items (item_type,item_id) and only hide items in the dashboard; they never change story/purchase data. Why: display-only triage.
 - Ages 0–4 reader on a wide screen (isWideReader, not the cover) shows a picture page as an open book (picture left, text right on paper via TextOnlyPage); any picture-less page with no pending picture uses TextOnlyPage (centred text, ornament) on every screen; its scroll box never uses justify-center (content my-auto), so long text starts at the top and scrolls on small phones. Phone picture pages stay on PhonePictureTextPage. Why: text covered faces and picture-less pages looked broken.
 - Illustration framing comes from supabase/functions/_shared/camera-framing.ts: stories created from CONSISTENT_FRAMING_CUTOFF get eye-level waist/knee-up angles with a fixed hero-size rule; older stories keep the legacy six-angle rotation. Why: hero size jumping between pages confused young children, without changing old stories' redraws.
-- Avatar cover for new stories: see supabase/functions/AGENTS.md; UI shows it whole via src/lib/avatar-cover.ts. Why: cover = exact avatar.
-- /create step 2 needs an avatar (photo-optional.ts canProceedWithPhoto); no hair/clothing questions. Why: looks = avatar + free text.
+- Avatar cover: see supabase/functions/AGENTS.md; UI via src/lib/avatar-cover.ts.
+- /create needs an avatar (canProceedWithPhoto). Why: looks = avatar + free text.
