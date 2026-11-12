@@ -218,6 +218,13 @@
       "when": 1794470075905,
       "tag": "0030_story_hero_avatar_style_opt_in",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794479346711,
+      "tag": "0031_story_short_prompt_opt_in",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,2 @@
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS hero_short_prompt boolean NOT NULL DEFAULT false;
+COMMENT ON COLUMN public.stories.hero_short_prompt IS 'Admin per-story opt-in: an older story is drawn/redrawn with the short avatar-first instruction (usesShortPrompt).';

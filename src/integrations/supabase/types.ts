@@ -1000,6 +1000,7 @@ export type Database = {
           hero_avatar_style: boolean
           hero_eye_color: string | null
           hero_hair_shade: string | null
+          hero_short_prompt: boolean
           hero_skin_tone: string | null
           hero_traits: string[] | null
           id: string
@@ -1045,6 +1046,7 @@ export type Database = {
           hero_avatar_style?: boolean
           hero_eye_color?: string | null
           hero_hair_shade?: string | null
+          hero_short_prompt?: boolean
           hero_skin_tone?: string | null
           hero_traits?: string[] | null
           id?: string
@@ -1090,6 +1092,7 @@ export type Database = {
           hero_avatar_style?: boolean
           hero_eye_color?: string | null
           hero_hair_shade?: string | null
+          hero_short_prompt?: boolean
           hero_skin_tone?: string | null
           hero_traits?: string[] | null
           id?: string

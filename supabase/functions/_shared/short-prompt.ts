@@ -11,9 +11,11 @@ export type ShortCastKey = keyof typeof CAST_DESCRIPTIONS;
 
 export const SHORT_PROMPT_CUTOFF = "2026-11-12T08:45:00Z";
 
-/** Short instruction only for stories created from SHORT_PROMPT_CUTOFF and drawn from the avatar. */
-export function usesShortPrompt(createdAt: string | null | undefined, faceIsAvatar: boolean): boolean {
-  if (!faceIsAvatar || !createdAt) return false;
+/** Short instruction for avatar-drawn stories created from SHORT_PROMPT_CUTOFF, or an older story's own admin opt-in (stories.hero_short_prompt). */
+export function usesShortPrompt(createdAt: string | null | undefined, faceIsAvatar: boolean, optIn: unknown = false): boolean {
+  if (!faceIsAvatar) return false;
+  if (optIn === true) return true;
+  if (!createdAt) return false;
   const t = Date.parse(createdAt);
   return !Number.isNaN(t) && t >= Date.parse(SHORT_PROMPT_CUTOFF);
 }

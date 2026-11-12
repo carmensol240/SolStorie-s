@@ -106,7 +106,7 @@ serve(async (req) => {
     // Verify story ownership (or admin)
     const { data: story, error: storyError } = await supabase
       .from("stories")
-      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, hero_avatar_style, cover_url")
+      .select("id, user_id, child_id, child_photo_path, child_gender, age_range, child_name, topic, page1_regen_used, page1_regen_lock_at, story_outfit, kippah, kippah_color, illustration_format, created_at, hero_hair_shade, hero_eye_color, hero_skin_tone, hero_traits, hero_avatar_style, hero_short_prompt, cover_url")
       .eq("id", storyId)
       .maybeSingle();
 
@@ -369,7 +369,7 @@ serve(async (req) => {
     const avatarStyleOn = usesAvatarStyle((story as any).created_at, !!childPhoto && (photoSource === "avatar" || photoSource === "profile_avatar"), (story as any).hero_avatar_style);
     // New stories (SHORT_PROMPT_CUTOFF) drawn from the avatar: short instruction, avatar's clothes unless the
     // parent asked for clothes (story_outfit), no page reference picture, plus the clothes/flag checks.
-    const shortOn = !!childPhoto && usesShortPrompt((story as any).created_at, photoSource === "avatar" || photoSource === "profile_avatar");
+    const shortOn = !!childPhoto && usesShortPrompt((story as any).created_at, photoSource === "avatar" || photoSource === "profile_avatar", (story as any).hero_short_prompt);
     const requestedOutfit: string | null = shortOn ? (String((story as any).story_outfit || "").trim() || null) : null;
     const hero: PromptHero = {
       gender: (story as any).child_gender, ageText, outfit, kippah: kp.kippah, kippahColor: kp.color,

@@ -17,6 +17,15 @@ Deno.test("short instruction only for stories created from the new cutoff and dr
   assertEquals(usesShortPrompt(null, true), false);
 });
 
+Deno.test("an older story uses the short instruction only with its own admin opt-in (hero_short_prompt), and only with an avatar", () => {
+  const before = new Date(Date.parse(SHORT_PROMPT_CUTOFF) - 86_400_000).toISOString();
+  assertEquals(usesShortPrompt(before, true, true), true);
+  assertEquals(usesShortPrompt(before, true, false), false);
+  assertEquals(usesShortPrompt(before, true, null), false);
+  assertEquals(usesShortPrompt(before, true, "true"), false); // only a real boolean switches it on
+  assertEquals(usesShortPrompt(before, false, true), false); // never without the avatar as face picture
+});
+
 Deno.test("the request starts with the avatar line, then the scene, and ends with shape + warm light + no text/flags", () => {
   const p = buildShortIllustrationPrompt({ scene, format: "landscape" });
   assert(p.startsWith("This is the child's avatar. Create a children's book illustration of EXACTLY this same child — same face, same hair, same eyes, same face shape — in the same 3D style as the avatar."));
